@@ -1,0 +1,425 @@
+import React from 'react';
+import { 
+  XMarkIcon, 
+  CloudArrowUpIcon, 
+  DocumentIcon,
+  EyeIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
+
+interface UploadsModalProps {
+  onClose: () => void;
+  language: 'en' | 'zh';
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  status: 'uploading' | 'processing' | 'completed' | 'error';
+  progress: number;
+  ocrStatus?: 'pending' | 'processing' | 'completed' | 'failed';
+  extractedData?: string[];
+}
+
+export function UploadsModal({ onClose, language }: UploadsModalProps) {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
+  const [selectedFiles, setSelectedFiles] = React.useState<string[]>([]);
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    handleFiles(files);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      handleFiles(files);
+    }
+  };
+
+  const handleFiles = (files: File[]) => {
+    const newFiles: UploadedFile[] = files.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: 'uploading',
+      progress: 0,
+      ocrStatus: 'pending',
+    }));
+
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+
+    // Simulate upload and processing
+    newFiles.forEach(file => {
+      simulateFileProcessing(file.id);
+    });
+  };
+
+  const simulateFileProcessing = (fileId: string) => {
+    // Simulate upload progress
+    const uploadInterval = setInterval(() => {
+      setUploadedFiles(prev => 
+        prev.map(file => {
+          if (file.id === fileId && file.status === 'uploading') {
+            const newProgress = Math.min(file.progress + Math.random() * 30, 100);
+            if (newProgress >= 100) {
+              clearInterval(uploadInterval);
+              return { ...file, status: 'processing', progress: 100, ocrStatus: 'processing' };
+            }
+            return { ...file, progress: newProgress };
+          }
+          return file;
+        })
+      );
+    }, 200);
+
+    // Simulate OCR processing
+    setTimeout(() => {
+      setUploadedFiles(prev =>
+        prev.map(file => {
+          if (file.id === fileId) {
+            return {
+              ...file,
+              status: 'completed',
+              ocrStatus: 'completed',
+              extractedData: [
+                getText('Document Type Identified', '文档类型已识别'),
+                getText('Date Fields Extracted', '提取日期字段'),
+                getText('Text Content Processed', '文本内容已处理'),
+              ]
+            };
+          }
+          return file;
+        })
+      );
+    }, 3000 + Math.random() * 2000);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const deleteFile = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+    setSelectedFiles(prev => prev.filter(id => id !== fileId));
+  };
+
+  const toggleFileSelection = (fileId: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileId) 
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  const deleteSelectedFiles = () => {
+    setUploadedFiles(prev => prev.filter(file => !selectedFiles.includes(file.id)));
+    setSelectedFiles([]);
+  };
+
+  const rescanFiles = () => {
+    selectedFiles.forEach(fileId => {
+      setUploadedFiles(prev =>
+        prev.map(file => {
+          if (file.id === fileId) {
+            return { ...file, ocrStatus: 'processing' };
+          }
+          return file;
+        })
+      );
+      
+      // Simulate re-scanning
+      setTimeout(() => {
+        setUploadedFiles(prev =>
+          prev.map(file => {
+            if (file.id === fileId) {
+              return { ...file, ocrStatus: 'completed' };
+            }
+            return file;
+          })
+        );
+      }, 2000);
+    });
+    setSelectedFiles([]);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      <div className="relative bg-background border border-border rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] m-4 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div>
+            <h2 className="mb-1">
+              {getText('Upload Documents', '上传文档')}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <span data-lang-cn="拖放文档或点击浏览。支持PDF、JPG、PNG格式。">
+                {getText(
+                  'Drag and drop documents or click to browse. PDF, JPG, PNG supported.',
+                  '拖放文档或点击浏览。支持PDF、JPG、PNG格式。'
+                )}
+              </span>
+            </p>
+          </div>
+          
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-secondary rounded-lg transition-colors"
+            aria-label={getText('Close upload dialog', '关闭上传对话框')}
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Upload Area */}
+        <div className="p-6 border-b border-border">
+          <div
+            className={`border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer hover:bg-neutral/50 ${
+              isDragging 
+                ? 'border-primary bg-primary/10' 
+                : 'border-border'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <CloudArrowUpIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-medium mb-2">
+              {getText('Drop files here or click to browse', '在此放置文件或点击浏览')}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              <span data-lang-cn="最大文件大小：10MB。支持格式：PDF、JPG、PNG">
+                {getText(
+                  'Maximum file size: 10MB. Supported formats: PDF, JPG, PNG',
+                  '最大文件大小：10MB。支持格式：PDF、JPG、PNG'
+                )}
+              </span>
+            </p>
+            
+            <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all hover-scale">
+              {getText('Browse Files', '浏览文件')}
+            </button>
+          </div>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileSelect}
+            className="hidden"
+            aria-label={getText('Select files to upload', '选择要上传的文件')}
+          />
+        </div>
+
+        {/* File List */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {uploadedFiles.length > 0 && (
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium">
+                  {getText('Uploaded Files', '已上传文件')} ({uploadedFiles.length})
+                </h3>
+                
+                {selectedFiles.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={rescanFiles}
+                      className="text-sm font-medium text-accent hover:text-accent/80 transition-colors px-3 py-1 rounded-md hover:bg-accent/10"
+                    >
+                      {getText('Rescan Selected', '重新扫描所选')}
+                    </button>
+                    <button
+                      onClick={deleteSelectedFiles}
+                      className="text-sm font-medium text-error hover:text-error/80 transition-colors px-3 py-1 rounded-md hover:bg-error/10"
+                    >
+                      {getText('Delete Selected', '删除所选')} ({selectedFiles.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {uploadedFiles.map((file) => (
+                  <div key={file.id} className="flex items-center gap-4 p-4 border border-border rounded-lg hover:shadow-sm transition-shadow">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes(file.id)}
+                      onChange={() => toggleFileSelection(file.id)}
+                      className="w-4 h-4 text-primary focus:ring-primary border-border rounded"
+                      aria-label={`Select ${file.name}`}
+                    />
+                    
+                    <div className="flex-shrink-0">
+                      <DocumentIcon className="w-8 h-8 text-primary" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium truncate">{file.name}</h4>
+                        <span className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)}
+                        </span>
+                        
+                        {/* Status Indicator */}
+                        {file.status === 'completed' && (
+                          <CheckCircleIcon className="w-4 h-4 text-accent flex-shrink-0" />
+                        )}
+                        {file.status === 'error' && (
+                          <ExclamationTriangleIcon className="w-4 h-4 text-error flex-shrink-0" />
+                        )}
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      {file.status === 'uploading' && (
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                            <span>{getText('Uploading...', '上传中...')}</span>
+                            <span>{Math.round(file.progress)}%</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-1.5">
+                            <div 
+                              className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${file.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* OCR Status */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            OCR: {file.ocrStatus === 'pending' && getText('Pending', '等待中')}
+                            {file.ocrStatus === 'processing' && getText('Processing...', '处理中...')}
+                            {file.ocrStatus === 'completed' && getText('Completed', '已完成')}
+                            {file.ocrStatus === 'failed' && getText('Failed', '失败')}
+                          </span>
+                          
+                          {file.ocrStatus === 'processing' && (
+                            <div className="animate-spin w-3 h-3 border border-primary border-t-transparent rounded-full" />
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <button
+                            className="p-1 hover:bg-secondary rounded transition-colors"
+                            aria-label={getText('Preview file', '预览文件')}
+                          >
+                            <EyeIcon className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={() => deleteFile(file.id)}
+                            className="p-1 hover:bg-secondary rounded transition-colors"
+                            aria-label={getText('Delete file', '删除文件')}
+                          >
+                            <TrashIcon className="w-4 h-4 text-error" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Extracted Data Preview */}
+                      {file.extractedData && (
+                        <div className="mt-2 p-2 bg-accent/10 rounded text-xs">
+                          <div className="font-medium text-accent mb-1">
+                            {getText('Extracted Information:', '提取的信息：')}
+                          </div>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
+                            {file.extractedData.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {uploadedFiles.length === 0 && (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center">
+                <DocumentIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  <span data-lang-cn="尚未上传文件。开始上传以查看文件处理状态。">
+                    {getText(
+                      'No files uploaded yet. Start uploading to see file processing status.',
+                      '尚未上传文件。开始上传以查看文件处理状态。'
+                    )}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-border bg-neutral/30">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              {uploadedFiles.length > 0 && (
+                <span>
+                  {getText(
+                    `${uploadedFiles.filter(f => f.status === 'completed').length} of ${uploadedFiles.length} files processed`,
+                    `${uploadedFiles.filter(f => f.status === 'completed').length} / ${uploadedFiles.length} 个文件已处理`
+                  )}
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {getText('Close', '关闭')}
+              </button>
+              <button
+                onClick={onClose}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-lg font-medium transition-all hover-scale"
+                disabled={uploadedFiles.filter(f => f.status === 'completed').length === 0}
+              >
+                {getText('Continue to Form Builder', '继续到表格构建器')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
