@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Header } from '@/components/Header';
-import { Home } from '@/components/Home';
+import { HowItWorks } from '@/components/HowItWorks';
 import { Footer } from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 
-export default function HomePage() {
+export default function HowItWorksPage() {
   const router = useRouter();
   const [language, setLanguage] = useState<'en' | 'zh'>('en');
   
@@ -29,14 +29,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header 
-        currentPage="home"
+        currentPage="how-it-works"
         onNavigate={handleNavigate}
         language={language}
         onLanguageChange={handleLanguageChange}
         onAuthAction={handleAuthAction}
       />
       <main className="flex-1">
-        <Home onNavigate={handleNavigate} language={language} />
+        <HowItWorks language={language} onNavigate={handleNavigate} />
       </main>
       <Footer language={language} />
     </div>
