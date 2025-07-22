@@ -33,24 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // API call helper for authenticated requests
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('visaMate_accessToken');
-    const headers: HeadersInit = {
+    // 只用对象管理 headers，安全合并
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers ? (options.headers as Record<string, string>) : {}),
     };
 
-    // Only add Authorization header if we have a token (for authenticated requests)
     if (token) {
-      headers.Authorization = `Bearer ${token}`;
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
-    console.log('Making API call to:', endpoint, 'with token:', !!token);
-
     const response = await fetch(
-      `https://${projectId}.supabase.co/functions/v1${endpoint}`,
-      {
-        ...options,
-        headers,
-      }
+        `https://${projectId}.supabase.co/functions/v1${endpoint}`,
+        {
+          ...options,
+          headers,
+        }
     );
 
     console.log('API response status:', response.status);

@@ -36,7 +36,7 @@ export default function PricingPage() {
         onAuthAction={handleAuthAction}
       />
       <main className="flex-1">
-        <Pricing language={language} />
+        <Pricing language={language}  onNavigate={() => {}} />
       </main>
       <Footer language={language} />
     </div>

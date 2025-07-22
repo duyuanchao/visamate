@@ -14,10 +14,11 @@ import {
   ArrowRightIcon,
   PlayCircleIcon
 } from '@heroicons/react/24/outline';
+import type {Page} from "@/App";
 
 interface HowItWorksProps {
   language: 'en' | 'zh';
-  onNavigate: (page: string) => void;
+  onNavigate: (page: Page) => void; // <-- strict, matches handleNavigation!
 }
 
 export function HowItWorks({ language, onNavigate }: HowItWorksProps) {

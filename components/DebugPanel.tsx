@@ -31,7 +31,7 @@ export function DebugPanel() {
         addResult('Basic Connectivity', false, { status: response.status, statusText: response.statusText });
       }
     } catch (error) {
-      addResult('Basic Connectivity', false, { error: error.message });
+      addResult('Basic Connectivity', false, { error: 'error'});
     }
 
     // Test 2: Health check
@@ -50,7 +50,7 @@ export function DebugPanel() {
         addResult('Health Check', false, { status: response.status, statusText: response.statusText });
       }
     } catch (error) {
-      addResult('Health Check', false, { error: error.message });
+      addResult('Health Check', false, { error: 'error.message '});
     }
 
     // Test 3: Signin endpoint (with invalid credentials)
@@ -74,7 +74,7 @@ export function DebugPanel() {
         addResult('Signin Endpoint', false, { status: response.status, response: data });
       }
     } catch (error) {
-      addResult('Signin Endpoint', false, { error: error.message });
+      addResult('Signin Endpoint', false, { error: 'error.message' });
     }
 
     setTesting(false);

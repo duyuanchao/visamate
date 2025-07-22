@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { CheckIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
+import type {Page} from "@/App";
 
 interface PricingProps {
   language: 'en' | 'zh';
+  onNavigate: (page: Page) => void; // <-- strict, matches handleNavigation!
 }
 
 export function Pricing({ language }: PricingProps) {

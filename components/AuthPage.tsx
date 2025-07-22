@@ -4,10 +4,11 @@ import React from 'react';
 import { EyeIcon, EyeSlashIcon, ArrowRightIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useAuth } from './AuthContext';
 import { visaCategories, categoryGroups } from '../utils/supabase/visaCategories';
+import type { Page } from '@/App'; // or from './types'
 
 interface AuthPageProps {
   mode: 'signin' | 'signup';
-  onNavigate: (page: string) => void;
+  onNavigate: (page: Page) => void; // <-- strict, matches handleNavigation!
   language: 'en' | 'zh';
   onSwitchMode: (mode: 'signin' | 'signup') => void;
 }

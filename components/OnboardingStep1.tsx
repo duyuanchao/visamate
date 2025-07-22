@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import type {Page} from "@/App";
 
 interface OnboardingStep1Props {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: Page) => void; // <-- strict, matches handleNavigation!
   language: 'en' | 'zh';
 }
 

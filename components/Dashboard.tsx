@@ -6,7 +6,6 @@ import {
   ClockIcon, 
   ExclamationTriangleIcon, 
   ChatBubbleLeftRightIcon,
-  CheckCircleIcon,
   XCircleIcon,
   DocumentIcon,
   UserIcon
@@ -229,17 +228,17 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
 
           {/* RFE Risk Alert */}
           <div className={`border rounded-xl p-6 ${
-            user && user.rfeRisk > 50 
+              user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50
               ? 'bg-amber-50 border-amber-200' 
               : 'bg-green-50 border-green-200'
           }`}>
             <div className="flex items-start gap-3">
               <ExclamationTriangleIcon className={`w-6 h-6 mt-0.5 flex-shrink-0 ${
-                user && user.rfeRisk > 50 ? 'text-amber-600' : 'text-green-600'
+                  user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'text-amber-600' : 'text-green-600'
               }`} />
               <div className="flex-1">
                 <h3 className={`font-medium mb-2 ${
-                  user && user.rfeRisk > 50 ? 'text-amber-800' : 'text-green-800'
+                    user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'text-amber-800' : 'text-green-800'
                 }`}>
                   {getText('RFE Risk Assessment', 'RFE风险评估')}
                 </h3>
@@ -248,12 +247,12 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className={`text-sm font-medium ${
-                      user && user.rfeRisk > 50 ? 'text-amber-700' : 'text-green-700'
+                        user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'text-amber-700' : 'text-green-700'
                     }`}>
                       {getText('Current Risk Level', '当前风险水平')}
                     </span>
                     <span className={`text-lg font-bold ${
-                      user && user.rfeRisk > 50 ? 'text-amber-800' : 'text-green-800'
+                        user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'text-amber-800' : 'text-green-800'
                     }`}>
                       {user?.rfeRisk || 0}%
                     </span>
@@ -261,7 +260,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
                   <div className="w-full bg-white/50 rounded-full h-3">
                     <div 
                       className={`h-3 rounded-full transition-all duration-500 ${
-                        user && user.rfeRisk > 50 ? 'bg-amber-600' : 'bg-green-600'
+                          user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'bg-amber-600' : 'bg-green-600'
                       }`}
                       style={{ width: `${user?.rfeRisk || 0}%` }}
                     />
@@ -269,17 +268,17 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
                 </div>
                 
                 <p className={`text-sm mb-4 ${
-                  user && user.rfeRisk > 50 ? 'text-amber-700' : 'text-green-700'
+                    user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'text-amber-700' : 'text-green-700'
                 }`}>
-                  <span data-lang-cn={user && user.rfeRisk > 50 ? '上传更多文档以降低风险。' : '风险较低，继续保持！'}>
+                  <span data-lang-cn={user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? '上传更多文档以降低风险。' : '风险较低，继续保持！'}>
                     {getText(
-                      user && user.rfeRisk > 50 ? 'Upload more documents to reduce risk.' : 'Risk is low, keep it up!',
-                      user && user.rfeRisk > 50 ? '上传更多文档以降低风险。' : '风险较低，继续保持！'
+                        user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? 'Upload more documents to reduce risk.' : 'Risk is low, keep it up!',
+                        user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 ? '上传更多文档以降低风险。' : '风险较低，继续保持！'
                     )}
                   </span>
                 </p>
                 
-                {user && user.rfeRisk > 50 && (
+                {user && typeof user.rfeRisk === 'number' && user.rfeRisk > 50 && (
                   <button 
                     onClick={onShowUploads}
                     className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"

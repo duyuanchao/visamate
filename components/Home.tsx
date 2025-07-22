@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheckIcon, UserGroupIcon, ChartBarIcon, ArrowRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import type { Page } from '@/App'; // or from './types'
+import { ShieldCheckIcon, UserGroupIcon, ChartBarIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 interface HomeProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: Page) => void; // <-- strict, matches handleNavigation!
   language: 'en' | 'zh';
 }
 

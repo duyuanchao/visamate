@@ -277,7 +277,7 @@ export function useApi() {
       console.error('%c=== API ERROR ===', 'color: red; font-weight: bold;');
       console.error('Error details:', error);
       console.error('Error type:', typeof error);
-      console.error('Error message:', error.message);
+      console.error('Error message:');
       throw error;
     }
   };

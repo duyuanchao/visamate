@@ -12,7 +12,7 @@ import { Footer } from './components/Footer';
 
 
 // Mock router for demonstration
-type Page = 'home' | 'how-it-works' | 'pricing' | 'onboarding' | 'dashboard' | 'doc-builder' | 'rfe-report' | 'settings' | 'signin' | 'signup';
+export type Page = 'home' | 'how-it-works' | 'pricing' | 'onboarding' | 'dashboard' | 'doc-builder' | 'rfe-report' | 'settings' | 'signin' | 'signup';
 
 function AppContent() {
   const { user, loading } = useAuth();
