@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { ChevronDownIcon, Bars3Icon, XMarkIcon, GlobeAltIcon } from '@heroicons/react/24/outline';

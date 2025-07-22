@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ShieldCheckIcon, UserGroupIcon, ChartBarIcon, ArrowRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 

@@ -29,5 +29,10 @@ export default function DashboardPage() {
     return null; // Will redirect
   }
 
-  return <Dashboard />;
+  const handleShowUploads = () => {
+    // 处理上传模态框显示
+    console.log('Show uploads modal');
+  };
+
+  return <Dashboard onShowUploads={handleShowUploads} language="en" />;
 }

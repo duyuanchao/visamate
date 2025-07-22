@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('Making API call to:', endpoint, 'with token:', !!token);
 
     const response = await fetch(
-      `https://${projectId}.supabase.co/functions/v1/make-server-54a8f580${endpoint}`,
+      `https://${projectId}.supabase.co/functions/v1${endpoint}`,
       {
         ...options,
         headers,
@@ -64,16 +66,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // API call helper for unauthenticated requests (signin/signup)
   const unauthenticatedApiCall = async (endpoint: string, options: RequestInit = {}) => {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${publicAnonKey}`, // Use public anon key for unauthenticated requests
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
 
     console.log('Making unauthenticated API call to:', endpoint);
 
     const response = await fetch(
-      `https://${projectId}.supabase.co/functions/v1/make-server-54a8f580${endpoint}`,
+      `https://${projectId}.supabase.co/functions/v1${endpoint}`,
       {
         ...options,
         headers,
@@ -101,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('Refreshing user data');
-      const data = await apiCall('/user/profile');
+      const data = await apiCall('/make-server-54a8f580/user/profile');
       if (data.user) {
         console.log('User data refreshed successfully');
         setUser(data.user);
@@ -123,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         console.log('Loading user with existing token');
-        const data = await apiCall('/user/profile');
+        const data = await apiCall('/make-server-54a8f580/user/profile');
         if (data.user) {
           console.log('User loaded successfully:', data.user.email);
           setUser(data.user);
@@ -145,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Attempting signin for:', email);
       
-      const data = await unauthenticatedApiCall('/auth/signin', {
+      const data = await unauthenticatedApiCall('/make-server-54a8f580/auth/signin', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -178,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Attempting signup for:', email);
       
-      const data = await unauthenticatedApiCall('/auth/signup', {
+      const data = await unauthenticatedApiCall('/make-server-54a8f580/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ 
           email, 
@@ -215,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Updating profile with:', updates);
       
-      const data = await apiCall('/user/profile', {
+      const data = await apiCall('/make-server-54a8f580/user/profile', {
         method: 'PUT',
         body: JSON.stringify(updates),
       });
@@ -263,9 +265,9 @@ export function useAuth() {
 export function useApi() {
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('visaMate_accessToken');
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
 
     if (token) {
@@ -273,7 +275,7 @@ export function useApi() {
     }
 
     const response = await fetch(
-      `https://${projectId}.supabase.co/functions/v1/make-server-54a8f580${endpoint}`,
+      `https://${projectId}.supabase.co/functions/v1${endpoint}`,
       {
         ...options,
         headers,
@@ -292,7 +294,7 @@ export function useApi() {
     if (!requireAuth) {
       // For health checks and other non-authenticated endpoints
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-54a8f580${endpoint}`,
+        `https://${projectId}.supabase.co/functions/v1${endpoint}`,
         {
           headers: {
             'Content-Type': 'application/json',

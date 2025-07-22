@@ -8,7 +8,7 @@ import {
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import { useAuth, useApi } from './AuthContext';
-import { visaCategories, categoryGroups, VisaCategory } from '../utils/visaCategories';
+import { visaCategories, categoryGroups, VisaCategory, CategoryGroup } from '../utils/supabase/visaCategories';
 
 interface VisaCategorySelectorProps {
   language: 'en' | 'zh';
@@ -57,14 +57,14 @@ export function VisaCategorySelector({ language }: VisaCategorySelectorProps) {
       setError('');
 
       // Update user profile
-      await api.put('/user/profile', {
+      await api.put('/make-server-54a8f580/user/profile', {
         visaCategory: selectedCategory
       });
 
       // Add timeline event for visa category change
       const selectedCategoryObj = visaCategories.find(cat => cat.value === selectedCategory);
       if (selectedCategoryObj) {
-        await api.post('/user/timeline', {
+        await api.post('/make-server-54a8f580/user/timeline', {
           title: getText('Visa Category Updated', '签证类别已更新'),
           title_zh: '签证类别已更新',
           description: getText(

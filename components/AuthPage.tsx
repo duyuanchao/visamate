@@ -1,7 +1,9 @@
+'use client';
+
 import React from 'react';
 import { EyeIcon, EyeSlashIcon, ArrowRightIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useAuth } from './AuthContext';
-import { visaCategories, categoryGroups } from '../utils/visaCategories';
+import { visaCategories, categoryGroups } from '../utils/supabase/visaCategories';
 
 interface AuthPageProps {
   mode: 'signin' | 'signup';
@@ -374,7 +376,7 @@ export function AuthPage({ mode, onNavigate, language, onSwitchMode }: AuthPageP
                   </label>
                   
                   <div className={`border rounded-lg ${errors.visaCategory ? 'border-error' : 'border-border'}`}>
-                    {categoryGroups.map((group) => {
+                    {categoryGroups && Array.isArray(categoryGroups) ? categoryGroups.map((group) => {
                       const groupCategories = visaCategories.filter(cat => cat.category === group.id);
                       const isExpanded = expandedGroups[group.id];
                       
@@ -423,12 +425,12 @@ export function AuthPage({ mode, onNavigate, language, onSwitchMode }: AuthPageP
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                                       <span className="text-sm font-medium">{category.label}</span>
-                                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getComplexityColor(category.complexity)}`}>
-                                        {getComplexityText(category.complexity)}
+                                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getComplexityColor(category.complexity || 'medium')}`}>
+                                        {getComplexityText(category.complexity || 'medium')}
                                       </span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                      {language === 'zh' ? category.subtitle_zh : category.subtitle}
+                                      {language === 'zh' ? (category.subtitle_zh || '') : (category.subtitle || '')}
                                     </p>
                                   </div>
                                 </label>
@@ -437,7 +439,7 @@ export function AuthPage({ mode, onNavigate, language, onSwitchMode }: AuthPageP
                           )}
                         </div>
                       );
-                    })}
+                    }) : null}
                   </div>
                   
                   {errors.visaCategory && (

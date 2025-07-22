@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { 
   DocumentTextIcon, 
@@ -56,7 +58,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         // Test server connectivity first
         try {
           console.log('Testing server health...');
-          await api.get('/health', false); // false = no auth required
+          await api.get('/make-server-54a8f580/health', false); // false = no auth required
           console.log('Server health check passed');
         } catch (healthError) {
           console.error('Server health check failed:', healthError);
@@ -67,7 +69,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         // Load timeline with detailed error handling
         try {
           console.log('Loading timeline...');
-          const timelineData = await api.get('/user/timeline');
+          const timelineData = await api.get('/make-server-54a8f580/user/timeline');
           console.log('Timeline data loaded successfully:', timelineData);
           setTimeline(timelineData.timeline || []);
         } catch (timelineError) {
@@ -79,7 +81,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         // Load checklist with detailed error handling
         try {
           console.log('Loading checklist...');
-          const checklistData = await api.get('/user/checklist');
+          const checklistData = await api.get('/make-server-54a8f580/user/checklist');
           console.log('Checklist data loaded successfully:', checklistData);
           setChecklist(checklistData.checklist || []);
         } catch (checklistError) {
@@ -113,7 +115,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
     }
 
     try {
-      const response = await api.put(`/user/checklist/${itemId}`, updates);
+      const response = await api.put(`/make-server-54a8f580/user/checklist/${itemId}`, updates);
       setChecklist(response.checklist);
       
       // Refresh user data to get updated stats
