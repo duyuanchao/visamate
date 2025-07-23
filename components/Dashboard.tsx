@@ -13,7 +13,7 @@ import {
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import { useAuth, useApi } from './AuthContext';
 import { VisaCategorySelector } from './VisaCategorySelector';
-import { EB1ACoverLetterSection } from './EB1ACoverLetterSection';
+import { EB1AToolsSuite } from './EB1AToolsSuite';
 
 interface DashboardProps {
   onShowUploads: () => void;
@@ -292,11 +292,9 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
           </div>
         </div>
 
-        {/* EB1A Cover Letter Generator - Show when EB1A is selected */}
+        {/* EB1A Tools Suite - Show when EB1A is selected */}
         {(user?.visaCategory === 'EB-1A' || true) && (
-          <div className="mb-8">
-            <EB1ACoverLetterSection language={language} onShowUploads={onShowUploads} />
-          </div>
+          <EB1AToolsSuite language={language} onShowUploads={onShowUploads} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
