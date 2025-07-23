@@ -10,13 +10,37 @@ import {
   TrophyIcon,
   UserGroupIcon,
   BanknotesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CloudArrowUpIcon,
+  SparklesIcon,
+  EyeIcon,
+  DocumentArrowDownIcon,
+  PlayIcon,
+  StopIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
 interface EB1ACoverLetterSectionProps {
   language: 'en' | 'zh';
   onShowUploads?: () => void;
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  uploadDate: Date;
+  processed: boolean;
+}
+
+interface CoverLetterData {
+  personalInfo: string;
+  evidenceFiles: UploadedFile[];
+  generatedContent: string;
+  isGenerating: boolean;
+  wordCount: number;
+  lastGenerated: Date | null;
 }
 
 interface EvidenceCategory {
