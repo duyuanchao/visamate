@@ -5,18 +5,14 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  StarIcon,
-  AcademicCapIcon,
-  TrophyIcon,
-  UserGroupIcon,
-  BanknotesIcon,
-  ChartBarIcon,
   CloudArrowUpIcon,
   SparklesIcon,
   EyeIcon,
   DocumentArrowDownIcon,
   PlayIcon,
-  StopIcon
+  StopIcon,
+  TrashIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
@@ -32,6 +28,7 @@ interface UploadedFile {
   size: number;
   uploadDate: Date;
   processed: boolean;
+  category: 'award' | 'publication' | 'media' | 'recommendation' | 'other';
 }
 
 interface CoverLetterData {
@@ -41,398 +38,482 @@ interface CoverLetterData {
   isGenerating: boolean;
   wordCount: number;
   lastGenerated: Date | null;
-}
-
-interface EvidenceCategory {
-  id: string;
-  title: string;
-  title_zh: string;
-  description: string;
-  description_zh: string;
-  icon: React.ComponentType<{ className?: string }>;
-  items: EvidenceItem[];
-  priority: 'high' | 'medium' | 'low';
-}
-
-interface EvidenceItem {
-  id: string;
-  name: string;
-  name_zh: string;
-  description: string;
-  description_zh: string;
-  required: boolean;
-  completed: boolean;
-  notes?: string;
-  notes_zh?: string;
+  generationProgress: number;
 }
 
 export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLetterSectionProps) {
-  const [evidenceCategories, setEvidenceCategories] = React.useState<EvidenceCategory[]>([
-    {
-      id: 'awards',
-      title: 'Awards and Recognition',
-      title_zh: '奖项证明',
-      description: 'Evidence of awards or prizes for excellence',
-      description_zh: '获奖证书（英文公证）、颁奖标准细则、媒体报道原文（标注发行量/影响力）',
-      icon: TrophyIcon,
-      priority: 'high',
-      items: [
-        {
-          id: 'award-1',
-          name: 'International/National Awards',
-          name_zh: '国际奖项',
-          description: 'Major international or national awards with English notarization',
-          description_zh: '需提供至少3项国际大奖标准',
-          required: true,
-          completed: false,
-          notes: 'Must include award criteria and media coverage with circulation/impact ratings',
-          notes_zh: '需说明奖制'
-        }
-      ]
-    },
-    {
-      id: 'publications',
-      title: 'Original Contributions',
-      title_zh: '原创贡献',
-      description: 'Published materials and original contributions to the field',
-      description_zh: '专利文件（附商业应用证明）、引用报告（Google Scholar H指数≥20为佳）',
-      icon: AcademicCapIcon,
-      priority: 'high',
-      items: [
-        {
-          id: 'pub-1',
-          name: 'Patent Documents',
-          name_zh: '需说明奖制',
-          description: 'Patents with commercial application evidence',
-          description_zh: '需说明奖制',
-          required: true,
-          completed: false
-        },
-        {
-          id: 'pub-2',
-          name: 'Citation Reports',
-          name_zh: '媒体报道',
-          description: 'H-index, citation count (exclude self-citations), journal impact factor (Scimago ranking)',
-          description_zh: '报道全文（含媒体名称、日期、发行量）、目标受众分析',
-          required: true,
-          completed: false,
-          notes: 'Prefer H-index ≥ 20, high-impact publications over conference papers',
-          notes_zh: '避免假材料，优先选用高影响力证据（如顶级期刊论文>普通会议文章）'
-        }
-      ]
-    },
-    {
-      id: 'judging',
-      title: 'Peer Review',
-      title_zh: '评审经历',
-      description: 'Evidence of judging the work of others',
-      description_zh: '主办方邀请函、感谢信、评审记录（需提交基于"特殊才能"邀请）',
-      icon: UserGroupIcon,
-      priority: 'medium',
-      items: [
-        {
-          id: 'judge-1',
-          name: 'Review Invitations',
-          name_zh: '需证明评审',
-          description: 'Invitations, thank you letters, review records based on "extraordinary ability"',
-          description_zh: '需证明评审',
-          required: false,
-          completed: false
-        }
-      ]
-    },
-    {
-      id: 'leadership',
-      title: 'Leadership Role',
-      title_zh: '高薪酬证明',
-      description: 'Leading or critical role in organizations',
-      description_zh: '税单/W-2表格、行业薪酬报告（如美国劳工统计局数据）',
-      icon: StarIcon,
-      priority: 'medium',
-      items: [
-        {
-          id: 'lead-1',
-          name: 'Tax Returns/W-2 Forms',
-          name_zh: '收入需高于',
-          description: 'Annual salary reports and industry benchmarks (US Bureau of Labor Statistics data)',
-          description_zh: '收入需高于',
-          required: false,
-          completed: false
-        }
-      ]
-    }
-  ]);
-
-  const [coverLetterStatus, setCoverLetterStatus] = React.useState({
-    drafted: false,
-    reviewed: false,
-    finalized: false,
+  const [coverLetterData, setCoverLetterData] = React.useState<CoverLetterData>({
+    personalInfo: '',
+    evidenceFiles: [],
+    generatedContent: '',
+    isGenerating: false,
     wordCount: 0,
-    lastUpdated: null as Date | null
+    lastGenerated: null,
+    generationProgress: 0
   });
+
+  const [dragActive, setDragActive] = React.useState(false);
+  const [showPreview, setShowPreview] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
 
-  const calculateProgress = () => {
-    const totalItems = evidenceCategories.reduce((sum, cat) => sum + cat.items.length, 0);
-    const completedItems = evidenceCategories.reduce(
-      (sum, cat) => sum + cat.items.filter(item => item.completed).length, 
-      0
-    );
-    return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+  // File upload handling
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'text-green-600 bg-green-600';
-    if (progress >= 60) return 'text-blue-600 bg-blue-600';
-    if (progress >= 40) return 'text-amber-600 bg-amber-600';
-    return 'text-red-600 bg-red-600';
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
   };
 
-  const handleItemToggle = (categoryId: string, itemId: string) => {
-    setEvidenceCategories(prev => 
-      prev.map(cat => 
-        cat.id === categoryId 
-          ? {
-              ...cat,
-              items: cat.items.map(item => 
-                item.id === itemId ? { ...item, completed: !item.completed } : item
-              )
-            }
-          : cat
+  const handleFiles = (files: FileList) => {
+    Array.from(files).forEach(file => {
+      const newFile: UploadedFile = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        uploadDate: new Date(),
+        processed: false,
+        category: 'other' // Default category, user can change
+      };
+
+      setCoverLetterData(prev => ({
+        ...prev,
+        evidenceFiles: [...prev.evidenceFiles, newFile]
+      }));
+
+      // Simulate file processing
+      setTimeout(() => {
+        setCoverLetterData(prev => ({
+          ...prev,
+          evidenceFiles: prev.evidenceFiles.map(f => 
+            f.id === newFile.id ? { ...f, processed: true } : f
+          )
+        }));
+      }, 2000);
+    });
+  };
+
+  const removeFile = (fileId: string) => {
+    setCoverLetterData(prev => ({
+      ...prev,
+      evidenceFiles: prev.evidenceFiles.filter(f => f.id !== fileId)
+    }));
+  };
+
+  const updateFileCategory = (fileId: string, category: UploadedFile['category']) => {
+    setCoverLetterData(prev => ({
+      ...prev,
+      evidenceFiles: prev.evidenceFiles.map(f => 
+        f.id === fileId ? { ...f, category } : f
       )
-    );
+    }));
   };
 
-  const progress = calculateProgress();
+  // GPT Cover Letter Generation
+  const generateCoverLetter = async () => {
+    if (coverLetterData.evidenceFiles.length === 0) {
+      alert(getText('Please upload evidence files first', '请先上传证据文件'));
+      return;
+    }
+
+    setCoverLetterData(prev => ({
+      ...prev,
+      isGenerating: true,
+      generationProgress: 0
+    }));
+
+    // Simulate GPT generation process with progress
+    const progressInterval = setInterval(() => {
+      setCoverLetterData(prev => {
+        const newProgress = prev.generationProgress + 10;
+        if (newProgress >= 100) {
+          clearInterval(progressInterval);
+          return {
+            ...prev,
+            generationProgress: 100,
+            isGenerating: false,
+            generatedContent: generateSampleCoverLetter(),
+            wordCount: 850,
+            lastGenerated: new Date()
+          };
+        }
+        return { ...prev, generationProgress: newProgress };
+      });
+    }, 500);
+  };
+
+  const generateSampleCoverLetter = () => {
+    return language === 'zh' ? 
+      `尊敬的移民官：
+
+我谨此提交EB-1A杰出人才移民申请，申请在美国获得永久居留权。作为在[专业领域]领域具有杰出能力的专业人士，我相信我的成就符合EB-1A的所有要求标准。
+
+一、杰出能力证明
+根据提交的证据材料，我在以下方面展现了杰出能力：
+
+1. 获得国际奖项和荣誉
+我曾获得多项国际级奖项，包括[具体奖项名称]，这些奖项在我的专业领域内具有重要意义和广泛认可度。
+
+2. 原创性贡献
+我的研究成果已发表在多个顶级期刊上，H指数达到[数值]，引用次数超过[数值]次（排除自引）。这些研究为行业发展做出了重要贡献。
+
+3. 媒体报道
+我的工作成果已被多家权威媒体报道，包括[媒体名称]，这些报道展现了我在该领域的国际影响力。
+
+二、未来贡献计划
+移居美国后，我计划在以下方面为美国做出贡献：
+- 推动科技创新和产业发展
+- 培养下一代专业人才
+- 促进国际学术交流与合作
+
+基于以上证据和计划，我恳请移民官批准我的EB-1A申请。
+
+此致
+敬礼
+
+[申请人姓名]
+[日期]` :
+      `Dear Immigration Officer,
+
+I am hereby submitting my EB-1A petition for an individual with extraordinary ability, seeking permanent residence in the United States. As a professional with extraordinary ability in [field], I believe my achievements meet all the required criteria for EB-1A classification.
+
+I. Evidence of Extraordinary Ability
+Based on the submitted evidence, I have demonstrated extraordinary ability in the following areas:
+
+1. Receipt of International Awards and Recognition
+I have received multiple international awards, including [specific award names], which carry significant recognition in my professional field.
+
+2. Original Contributions
+My research has been published in top-tier journals with an H-index of [number] and over [number] citations (excluding self-citations). These contributions have significantly advanced the field.
+
+3. Media Coverage
+My work has been featured in authoritative media outlets, including [media names], demonstrating my international influence in the field.
+
+II. Future Contribution Plans
+Upon immigration to the United States, I plan to contribute in the following ways:
+- Advancing technological innovation and industry development
+- Training the next generation of professionals
+- Facilitating international academic exchange and cooperation
+
+Based on the evidence and plans outlined above, I respectfully request approval of my EB-1A petition.
+
+Sincerely,
+
+[Applicant Name]
+[Date]`;
+  };
+
+  const stopGeneration = () => {
+    setCoverLetterData(prev => ({
+      ...prev,
+      isGenerating: false,
+      generationProgress: 0
+    }));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getCategoryColor = (category: UploadedFile['category']) => {
+    switch (category) {
+      case 'award': return 'bg-yellow-100 text-yellow-800';
+      case 'publication': return 'bg-blue-100 text-blue-800';
+      case 'media': return 'bg-green-100 text-green-800';
+      case 'recommendation': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getCategoryText = (category: UploadedFile['category']) => {
+    const categories = {
+      award: getText('Award', '奖项'),
+      publication: getText('Publication', '发表'),
+      media: getText('Media', '媒体'),
+      recommendation: getText('Recommendation', '推荐信'),
+      other: getText('Other', '其他')
+    };
+    return categories[category];
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Cover Letter Overview */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="flex items-center gap-2">
-            <DocumentTextIcon className="w-6 h-6 text-primary" />
-            {getText('EB1A Cover Letter', 'EB1A申请信')}
-          </h2>
-          <button className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
-            <PencilIcon className="w-4 h-4" />
-            {getText('Edit Draft', '编辑草稿')}
-          </button>
-        </div>
-
-        {/* Key Requirements Alert */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-blue-800 mb-2">
-                {getText('EB1A Key Requirements', 'EB1A关键要求')}
-              </h4>
-              <div className="text-sm text-blue-700 space-y-1">
-                <p>• {getText('Integrate all evidence, structured narrative explaining how qualifications meet at least 3 EB1A criteria', '整合所有证据，结构化叙述说明如何满足至少3项EB1A标准（如奖项、原创贡献、媒体报道等）')}</p>
-                <p>• {getText('Highlight "special international reputation" and "future benefits to the United States"', '需突出申请人的"特殊国际声誉"和"来美后续贡献"的计划')}</p>
-                <p>• {getText('Avoid piling materials, prioritize high-impact evidence (top journal papers > conference papers)', '避免堆砌材料，优先选用高影响力证据（如顶级期刊论文>普通会议文章）')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cover Letter Status */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 bg-secondary/30 rounded-lg border">
-            <div className="flex items-center gap-2 mb-2">
-              <DocumentTextIcon className="w-5 h-5 text-primary" />
-              <span className="font-medium">{getText('Draft Status', '草稿状态')}</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {coverLetterStatus.drafted 
-                ? getText('Draft completed', '草稿已完成')
-                : getText('Not started', '未开始')
-              }
-            </p>
-          </div>
-          
-          <div className="p-4 bg-secondary/30 rounded-lg border">
-            <div className="flex items-center gap-2 mb-2">
-              <ClockIcon className="w-5 h-5 text-primary" />
-              <span className="font-medium">{getText('Word Count', '字数统计')}</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {coverLetterStatus.wordCount} {getText('words', '字')}
-            </p>
-          </div>
-          
-          <div className="p-4 bg-secondary/30 rounded-lg border">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircleIcon className="w-5 h-5 text-primary" />
-              <span className="font-medium">{getText('Evidence Ready', '证据准备度')}</span>
-            </div>
-            <p className={`text-sm font-medium ${progress >= 80 ? 'text-green-600' : progress >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-              {progress}% {getText('complete', '完成')}
-            </p>
-          </div>
+    <div className="bg-card border border-border rounded-xl p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="flex items-center gap-2">
+          <DocumentTextIcon className="w-6 h-6 text-primary" />
+          {getText('EB1A Cover Letter Generator', 'EB1A申请信生成器')}
+        </h2>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <SparklesIcon className="w-4 h-4" />
+          {getText('AI-Powered', 'AI驱动')}
         </div>
       </div>
 
-      {/* Evidence Preparation Checklist */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="flex items-center gap-2">
-            <CheckCircleIcon className="w-5 h-5 text-primary" />
-            {getText('Supporting Evidence Preparation', '支持性证据准备要点')}
+      {/* Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <CloudArrowUpIcon className="w-5 h-5 text-blue-600" />
+            <span className="font-medium text-blue-800">{getText('Files Uploaded', '已上传文件')}</span>
+          </div>
+          <p className="text-2xl font-bold text-blue-900">{coverLetterData.evidenceFiles.length}</p>
+        </div>
+        
+        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircleIcon className="w-5 h-5 text-green-600" />
+            <span className="font-medium text-green-800">{getText('Processed', '已处理')}</span>
+          </div>
+          <p className="text-2xl font-bold text-green-900">
+            {coverLetterData.evidenceFiles.filter(f => f.processed).length}
+          </p>
+        </div>
+        
+        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-center gap-2 mb-2">
+            <DocumentTextIcon className="w-5 h-5 text-purple-600" />
+            <span className="font-medium text-purple-800">{getText('Word Count', '字数')}</span>
+          </div>
+          <p className="text-2xl font-bold text-purple-900">{coverLetterData.wordCount}</p>
+        </div>
+        
+        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+          <div className="flex items-center gap-2 mb-2">
+            <ClockIcon className="w-5 h-5 text-amber-600" />
+            <span className="font-medium text-amber-800">{getText('Last Generated', '最后生成')}</span>
+          </div>
+          <p className="text-sm text-amber-900">
+            {coverLetterData.lastGenerated 
+              ? coverLetterData.lastGenerated.toLocaleDateString()
+              : getText('Never', '从未')
+            }
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - File Upload */}
+        <div>
+          <h3 className="font-medium mb-4 flex items-center gap-2">
+            <CloudArrowUpIcon className="w-5 h-5 text-primary" />
+            {getText('Upload Evidence Documents', '上传证据文档')}
           </h3>
-          <div className="text-sm text-muted-foreground">
-            {getText('Pyramid Structure Evidence', '证据链结构化')}
-          </div>
-        </div>
 
-        {/* Evidence Pyramid Structure */}
-        <div className="mb-8 p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border border-primary/20">
-          <h4 className="font-medium mb-4 text-primary">
-            {getText('Pyramid Evidence Structure', '金字塔结构')}
-          </h4>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
-              <span>{getText('Top Layer: International Influence Evidence (Cross-border cooperation)', '顶层（国际影响力证据如跨国合作）')}</span>
-            </div>
-            <div className="flex items-center gap-3 ml-6">
-              <div className="w-3 h-3 bg-accent rounded-full"></div>
-              <span>{getText('Middle Layer: Awards/Patents', '中层（奖项/专利）')}</span>
-            </div>
-            <div className="flex items-center gap-3 ml-12">
-              <div className="w-3 h-3 bg-muted-foreground rounded-full"></div>
-              <span>{getText('Bottom Layer: Academic/Basic Evidence', '底层（学历/基础证明）')}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Overview */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              {getText('Evidence Preparation Progress', '证据准备进度')}
-            </span>
-            <span className={`text-sm font-medium ${getProgressColor(progress).split(' ')[0]}`}>
-              {progress}%
-            </span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-3">
-            <div 
-              className={`h-3 rounded-full transition-all duration-500 ${getProgressColor(progress).split(' ')[1]}`}
-              style={{ width: `${progress}%` }}
+          {/* File Upload Area */}
+          <div
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+              dragActive 
+                ? 'border-primary bg-primary/5' 
+                : 'border-border hover:border-primary/50'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <CloudArrowUpIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-lg font-medium mb-2">
+              {getText('Drag & drop files here', '拖拽文件到此处')}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {getText('or click to browse', '或点击浏览文件')}
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => e.target.files && handleFiles(e.target.files)}
+              className="hidden"
             />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              {getText('Choose Files', '选择文件')}
+            </button>
+            <p className="text-xs text-muted-foreground mt-2">
+              {getText('Supports: PDF, DOC, DOCX, JPG, PNG', '支持：PDF, DOC, DOCX, JPG, PNG')}
+            </p>
           </div>
-        </div>
 
-        {/* Evidence Categories */}
-        <div className="space-y-6">
-          {evidenceCategories.map((category) => (
-            <div key={category.id} className="border border-border rounded-lg overflow-hidden">
-              <div className={`p-4 ${
-                category.priority === 'high' ? 'bg-red-50 border-b border-red-200' :
-                category.priority === 'medium' ? 'bg-amber-50 border-b border-amber-200' :
-                'bg-green-50 border-b border-green-200'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <category.icon className={`w-6 h-6 ${
-                    category.priority === 'high' ? 'text-red-600' :
-                    category.priority === 'medium' ? 'text-amber-600' :
-                    'text-green-600'
-                  }`} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">
-                        {language === 'zh' ? category.title_zh : category.title}
-                      </h4>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        category.priority === 'high' ? 'bg-red-100 text-red-800' :
-                        category.priority === 'medium' ? 'bg-amber-100 text-amber-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {getText(
-                          category.priority === 'high' ? 'High Priority' : 
-                          category.priority === 'medium' ? 'Medium Priority' : 'Low Priority',
-                          category.priority === 'high' ? '高优先级' : 
-                          category.priority === 'medium' ? '中优先级' : '低优先级'
-                        )}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {language === 'zh' ? category.description_zh : category.description}
-                    </p>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {category.items.filter(item => item.completed).length}/{category.items.length}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 space-y-3">
-                {category.items.map((item) => (
-                  <div key={item.id} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
-                    item.completed ? 'bg-accent/10 border-accent/20' : 'bg-background border-border hover:border-primary/30'
-                  }`}>
-                    <button
-                      onClick={() => handleItemToggle(category.id, item.id)}
-                      className={`flex-shrink-0 mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        item.completed 
-                          ? 'bg-accent border-accent text-accent-foreground' 
-                          : item.required 
-                            ? 'border-primary hover:border-primary/80' 
-                            : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      {item.completed && <CheckCircleIconSolid className="w-3 h-3" />}
-                    </button>
-                    
-                    <div className="flex-1">
+          {/* Uploaded Files List */}
+          {coverLetterData.evidenceFiles.length > 0 && (
+            <div className="mt-6">
+              <h4 className="font-medium mb-3">
+                {getText('Uploaded Files', '已上传文件')}
+              </h4>
+              <div className="space-y-3">
+                {coverLetterData.evidenceFiles.map((file) => (
+                  <div key={file.id} className="flex items-center gap-3 p-3 bg-secondary rounded-lg border">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h5 className={`font-medium ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {language === 'zh' ? item.name_zh : item.name}
-                        </h5>
-                        {item.required && !item.completed && (
-                          <span className="text-xs bg-error/10 text-error px-2 py-0.5 rounded-full">
-                            {getText('Required', '必需')}
-                          </span>
+                        <h5 className="font-medium truncate">{file.name}</h5>
+                        {file.processed ? (
+                          <CheckCircleIconSolid className="w-4 h-4 text-green-600 flex-shrink-0" />
+                        ) : (
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {language === 'zh' ? item.description_zh : item.description}
-                      </p>
-                      {(item.notes || item.notes_zh) && (
-                        <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                          {language === 'zh' ? item.notes_zh : item.notes}
-                        </p>
-                      )}
-                      {!item.completed && (
-                        <button 
-                          onClick={onShowUploads}
-                          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-2"
-                        >
-                          {getText('Upload Evidence', '上传证据')}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatFileSize(file.size)}</span>
+                        <span>•</span>
+                        <span>{file.uploadDate.toLocaleDateString()}</span>
+                      </div>
                     </div>
+                    <select
+                      value={file.category}
+                      onChange={(e) => updateFileCategory(file.id, e.target.value as UploadedFile['category'])}
+                      className="text-xs px-2 py-1 rounded border bg-background"
+                    >
+                      <option value="award">{getText('Award', '奖项')}</option>
+                      <option value="publication">{getText('Publication', '发表')}</option>
+                      <option value="media">{getText('Media', '媒体')}</option>
+                      <option value="recommendation">{getText('Recommendation', '推荐信')}</option>
+                      <option value="other">{getText('Other', '其他')}</option>
+                    </select>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getCategoryColor(file.category)}`}>
+                      {getCategoryText(file.category)}
+                    </span>
+                    <button
+                      onClick={() => removeFile(file.id)}
+                      className="text-red-600 hover:text-red-800 transition-colors p-1"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
-          ))}
+          )}
         </div>
 
-        {/* 2025 New Requirements Alert */}
-        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-amber-800 mb-2">
-                {getText('2025 New Requirements', '应对2025年新规')}
-              </h4>
-              <div className="text-sm text-amber-700 space-y-1">
-                <p>• {getText('New "Industry Disruptive Innovation" indicator (AI/Quantum Computing fields must provide tech implementation proof)', '新增"行业颠覆性创新"指标（AI/量子计算等领域需提供技术落地证明）')}</p>
-                <p>• {getText('Recommendation letters must include referrer contact info for post-immigration verification', '推荐信需包含推荐人联系方式以供移民局核查真实性')}</p>
+        {/* Right Column - Generation & Preview */}
+        <div>
+          <h3 className="font-medium mb-4 flex items-center gap-2">
+            <SparklesIcon className="w-5 h-5 text-primary" />
+            {getText('AI Cover Letter Generation', 'AI申请信生成')}
+          </h3>
+
+          {/* Generation Controls */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={generateCoverLetter}
+                disabled={coverLetterData.isGenerating || coverLetterData.evidenceFiles.length === 0}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                {coverLetterData.isGenerating ? (
+                  <>
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                    {getText('Generating...', '生成中...')}
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="w-4 h-4" />
+                    {getText('Generate Cover Letter', '生成申请信')}
+                  </>
+                )}
+              </button>
+              
+              {coverLetterData.isGenerating && (
+                <button
+                  onClick={stopGeneration}
+                  className="flex items-center gap-2 border border-border hover:bg-secondary text-foreground px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <StopIcon className="w-4 h-4" />
+                  {getText('Stop', '停止')}
+                </button>
+              )}
+            </div>
+
+            {/* Generation Progress */}
+            {coverLetterData.isGenerating && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">
+                    {getText('Generating cover letter...', '正在生成申请信...')}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {coverLetterData.generationProgress}%
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${coverLetterData.generationProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Generated Content Preview */}
+          {coverLetterData.generatedContent && (
+            <div className="border border-border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-4 bg-secondary border-b border-border">
+                <h4 className="font-medium">
+                  {getText('Generated Cover Letter', '生成的申请信')}
+                </h4>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <EyeIcon className="w-4 h-4" />
+                    {showPreview ? getText('Hide', '隐藏') : getText('Preview', '预览')}
+                  </button>
+                  <button className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors">
+                    <DocumentArrowDownIcon className="w-4 h-4" />
+                    {getText('Download', '下载')}
+                  </button>
+                </div>
+              </div>
+              
+              {showPreview && (
+                <div className="p-4 max-h-96 overflow-y-auto">
+                  <div className="prose prose-sm max-w-none">
+                    <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {coverLetterData.generatedContent}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tips */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-blue-800 mb-2">
+                  {getText('Generation Tips', '生成提示')}
+                </h4>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p>• {getText('Upload evidence files from different categories for better results', '上传不同类别的证据文件以获得更好的结果')}</p>
+                  <p>• {getText('Ensure all documents are clearly readable and properly categorized', '确保所有文档清晰可读并正确分类')}</p>
+                  <p>• {getText('Review and customize the generated content before submission', '提交前请审核并自定义生成的内容')}</p>
+                </div>
               </div>
             </div>
           </div>

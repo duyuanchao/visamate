@@ -14,7 +14,6 @@ import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/sol
 import { useAuth, useApi } from './AuthContext';
 import { VisaCategorySelector } from './VisaCategorySelector';
 import { EB1ACoverLetterSection } from './EB1ACoverLetterSection';
-import { EB1AApplicationChecklist } from './EB1AApplicationChecklist';
 
 interface DashboardProps {
   onShowUploads: () => void;
