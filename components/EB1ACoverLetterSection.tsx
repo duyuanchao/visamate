@@ -12,7 +12,12 @@ import {
   PlayIcon,
   StopIcon,
   TrashIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  TrophyIcon,
+  AcademicCapIcon,
+  NewspaperIcon,
+  UserGroupIcon,
+  DocumentIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
@@ -29,6 +34,20 @@ interface UploadedFile {
   uploadDate: Date;
   processed: boolean;
   category: 'award' | 'publication' | 'media' | 'recommendation' | 'other';
+}
+
+interface EvidenceCategory {
+  id: 'award' | 'publication' | 'media' | 'recommendation' | 'other';
+  name: string;
+  name_zh: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+  description_zh: string;
+  requirements: string[];
+  requirements_zh: string[];
+  tips: string[];
+  tips_zh: string[];
+  acceptedFormats: string[];
 }
 
 interface CoverLetterData {
@@ -52,11 +71,171 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
     generationProgress: 0
   });
 
+  const [activeTab, setActiveTab] = React.useState<'award' | 'publication' | 'media' | 'recommendation' | 'other'>('award');
   const [dragActive, setDragActive] = React.useState(false);
   const [showPreview, setShowPreview] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
+
+  // Evidence categories with detailed guidance
+  const evidenceCategories: EvidenceCategory[] = [
+    {
+      id: 'award',
+      name: 'Awards & Recognition',
+      name_zh: '奖项证明',
+      icon: TrophyIcon,
+      description: 'Evidence of awards or prizes for excellence in your field',
+      description_zh: '在您的专业领域获得的奖项或荣誉证明',
+      requirements: [
+        'Award certificates with English notarization',
+        'Award criteria and selection standards',
+        'Media coverage with circulation/impact ratings',
+        'Proof of international/national recognition'
+      ],
+      requirements_zh: [
+        '获奖证书（英文公证）',
+        '颁奖标准和选拔细则',
+        '媒体报道原文（标注发行量/影响力）',
+        '国际/国家级认可证明'
+      ],
+      tips: [
+        'Focus on prestigious, internationally recognized awards',
+        'Include at least 3 major awards for strongest case',
+        'Provide context about award significance and competition level'
+      ],
+      tips_zh: [
+        '重点关注有声望的国际认可奖项',
+        '至少包含3项重要奖项以加强申请',
+        '提供奖项重要性和竞争水平的背景说明'
+      ],
+      acceptedFormats: ['PDF', 'JPG', 'PNG', 'DOC', 'DOCX']
+    },
+    {
+      id: 'publication',
+      name: 'Publications & Patents',
+      name_zh: '发表作品',
+      icon: AcademicCapIcon,
+      description: 'Published materials and original contributions to the field',
+      description_zh: '发表的材料和对该领域的原创贡献',
+      requirements: [
+        'Patent documents with commercial application evidence',
+        'Citation reports (Google Scholar H-index ≥20 preferred)',
+        'Journal impact factor (Scimago ranking)',
+        'Evidence of significant contribution to the field'
+      ],
+      requirements_zh: [
+        '专利文件（附商业应用证明）',
+        '引用报告（Google Scholar H指数≥20为佳）',
+        '期刊影响因子（Scimago排名）',
+        '对该领域重大贡献的证据'
+      ],
+      tips: [
+        'Prioritize high-impact publications over conference papers',
+        'Exclude self-citations from citation counts',
+        'Highlight original contributions and innovations'
+      ],
+      tips_zh: [
+        '优先选用高影响力期刊论文而非会议文章',
+        '引用统计中排除自引',
+        '突出原创贡献和创新点'
+      ],
+      acceptedFormats: ['PDF', 'DOC', 'DOCX']
+    },
+    {
+      id: 'media',
+      name: 'Media Coverage',
+      name_zh: '媒体报道',
+      icon: NewspaperIcon,
+      description: 'Media coverage demonstrating widespread recognition',
+      description_zh: '证明广泛认可的媒体报道',
+      requirements: [
+        'Full media coverage with outlet name, date, circulation',
+        'Target audience analysis',
+        'Professional recognition in major publications',
+        'Social media impact metrics (if applicable)'
+      ],
+      requirements_zh: [
+        '报道全文（含媒体名称、日期、发行量）',
+        '目标受众分析',
+        '主要出版物中的专业认可',
+        '社交媒体影响指标（如适用）'
+      ],
+      tips: [
+        'Focus on mainstream, reputable media outlets',
+        'Avoid purely academic or internal publications',
+        'Include circulation numbers and readership data'
+      ],
+      tips_zh: [
+        '重点关注主流、有声誉的媒体机构',
+        '避免纯学术或内部出版物',
+        '包含发行量和读者群数据'
+      ],
+      acceptedFormats: ['PDF', 'JPG', 'PNG', 'DOC', 'DOCX']
+    },
+    {
+      id: 'recommendation',
+      name: 'Recommendation Letters',
+      name_zh: '推荐信',
+      icon: UserGroupIcon,
+      description: 'Letters from recognized experts in your field',
+      description_zh: '来自您所在领域公认专家的推荐信',
+      requirements: [
+        'Letters from independent, recognized experts',
+        'Detailed explanation of your extraordinary abilities',
+        'Recommender contact information for verification',
+        'Official letterhead and signatures'
+      ],
+      requirements_zh: [
+        '来自独立、公认专家的推荐信',
+        '对您杰出能力的详细说明',
+        '推荐人联系方式以供核查',
+        '官方信头和签名'
+      ],
+      tips: [
+        'Ensure recommenders are independent (not colleagues)',
+        'Include contact info for post-immigration verification',
+        'Focus on specific achievements and impact'
+      ],
+      tips_zh: [
+        '确保推荐人是独立的（非同事）',
+        '包含联系方式以供移民局核查',
+        '专注于具体成就和影响力'
+      ],
+      acceptedFormats: ['PDF', 'DOC', 'DOCX']
+    },
+    {
+      id: 'other',
+      name: 'Other Evidence',
+      name_zh: '其他证据',
+      icon: DocumentIcon,
+      description: 'Additional supporting documentation',
+      description_zh: '其他支持性文档',
+      requirements: [
+        'High salary evidence (tax returns, W-2 forms)',
+        'Leadership role documentation',
+        'Peer review experience records',
+        'Industry salary benchmarks'
+      ],
+      requirements_zh: [
+        '高薪证明（税单、W-2表格）',
+        '领导职位文档',
+        '同行评议经历记录',
+        '行业薪酬基准'
+      ],
+      tips: [
+        'Include US Bureau of Labor Statistics data for salary comparison',
+        'Document leadership responsibilities clearly',
+        'Provide evidence of judging others\' work'
+      ],
+      tips_zh: [
+        '包含美国劳工统计局数据进行薪酬比较',
+        '清楚记录领导职责',
+        '提供评判他人工作的证据'
+      ],
+      acceptedFormats: ['PDF', 'DOC', 'DOCX', 'JPG', 'PNG']
+    }
+  ];
 
   // File upload handling
   const handleDrag = (e: React.DragEvent) => {
@@ -88,7 +267,7 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
         size: file.size,
         uploadDate: new Date(),
         processed: false,
-        category: 'other' // Default category, user can change
+        category: activeTab // Set to current active tab
       };
 
       setCoverLetterData(prev => ({
@@ -234,26 +413,7 @@ Sincerely,
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getCategoryColor = (category: UploadedFile['category']) => {
-    switch (category) {
-      case 'award': return 'bg-yellow-100 text-yellow-800';
-      case 'publication': return 'bg-blue-100 text-blue-800';
-      case 'media': return 'bg-green-100 text-green-800';
-      case 'recommendation': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
-  const getCategoryText = (category: UploadedFile['category']) => {
-    const categories = {
-      award: getText('Award', '奖项'),
-      publication: getText('Publication', '发表'),
-      media: getText('Media', '媒体'),
-      recommendation: getText('Recommendation', '推荐信'),
-      other: getText('Other', '其他')
-    };
-    return categories[category];
-  };
 
   return (
     <div className="bg-card border border-border rounded-xl p-6">
@@ -310,102 +470,176 @@ Sincerely,
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - File Upload */}
-        <div>
-          <h3 className="font-medium mb-4 flex items-center gap-2">
-            <CloudArrowUpIcon className="w-5 h-5 text-primary" />
-            {getText('Upload Evidence Documents', '上传证据文档')}
-          </h3>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         {/* Left Column - Evidence Upload by Category */}
+         <div>
+           <h3 className="font-medium mb-4 flex items-center gap-2">
+             <CloudArrowUpIcon className="w-5 h-5 text-primary" />
+             {getText('Upload Evidence Documents by Category', '按类别上传证据文档')}
+           </h3>
 
-          {/* File Upload Area */}
-          <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
-              dragActive 
-                ? 'border-primary bg-primary/5' 
-                : 'border-border hover:border-primary/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <CloudArrowUpIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium mb-2">
-              {getText('Drag & drop files here', '拖拽文件到此处')}
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {getText('or click to browse', '或点击浏览文件')}
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              onChange={(e) => e.target.files && handleFiles(e.target.files)}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              {getText('Choose Files', '选择文件')}
-            </button>
-            <p className="text-xs text-muted-foreground mt-2">
-              {getText('Supports: PDF, DOC, DOCX, JPG, PNG', '支持：PDF, DOC, DOCX, JPG, PNG')}
-            </p>
-          </div>
+           {/* Category Tabs */}
+           <div className="flex flex-wrap gap-1 mb-6 border-b border-border">
+             {evidenceCategories.map((category) => {
+               const Icon = category.icon;
+               const isActive = activeTab === category.id;
+               const fileCount = coverLetterData.evidenceFiles.filter(f => f.category === category.id).length;
+               
+               return (
+                 <button
+                   key={category.id}
+                   onClick={() => setActiveTab(category.id)}
+                   className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                     isActive
+                       ? 'border-primary text-primary bg-primary/5'
+                       : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                   }`}
+                 >
+                   <Icon className="w-4 h-4" />
+                   <span>{language === 'zh' ? category.name_zh : category.name}</span>
+                   {fileCount > 0 && (
+                     <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                       {fileCount}
+                     </span>
+                   )}
+                 </button>
+               );
+             })}
+           </div>
 
-          {/* Uploaded Files List */}
-          {coverLetterData.evidenceFiles.length > 0 && (
-            <div className="mt-6">
-              <h4 className="font-medium mb-3">
-                {getText('Uploaded Files', '已上传文件')}
-              </h4>
-              <div className="space-y-3">
-                {coverLetterData.evidenceFiles.map((file) => (
-                  <div key={file.id} className="flex items-center gap-3 p-3 bg-secondary rounded-lg border">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h5 className="font-medium truncate">{file.name}</h5>
-                        {file.processed ? (
-                          <CheckCircleIconSolid className="w-4 h-4 text-green-600 flex-shrink-0" />
-                        ) : (
-                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{formatFileSize(file.size)}</span>
-                        <span>•</span>
-                        <span>{file.uploadDate.toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    <select
-                      value={file.category}
-                      onChange={(e) => updateFileCategory(file.id, e.target.value as UploadedFile['category'])}
-                      className="text-xs px-2 py-1 rounded border bg-background"
-                    >
-                      <option value="award">{getText('Award', '奖项')}</option>
-                      <option value="publication">{getText('Publication', '发表')}</option>
-                      <option value="media">{getText('Media', '媒体')}</option>
-                      <option value="recommendation">{getText('Recommendation', '推荐信')}</option>
-                      <option value="other">{getText('Other', '其他')}</option>
-                    </select>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getCategoryColor(file.category)}`}>
-                      {getCategoryText(file.category)}
-                    </span>
-                    <button
-                      onClick={() => removeFile(file.id)}
-                      className="text-red-600 hover:text-red-800 transition-colors p-1"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+           {/* Active Category Content */}
+           {(() => {
+             const activeCategory = evidenceCategories.find(cat => cat.id === activeTab);
+             if (!activeCategory) return null;
+             
+             const Icon = activeCategory.icon;
+             const categoryFiles = coverLetterData.evidenceFiles.filter(f => f.category === activeTab);
+             
+             return (
+               <div>
+                 {/* Category Header */}
+                 <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
+                   <div className="flex items-center gap-3 mb-3">
+                     <Icon className="w-6 h-6 text-primary" />
+                     <div>
+                       <h4 className="font-medium text-primary">
+                         {language === 'zh' ? activeCategory.name_zh : activeCategory.name}
+                       </h4>
+                       <p className="text-sm text-muted-foreground">
+                         {language === 'zh' ? activeCategory.description_zh : activeCategory.description}
+                       </p>
+                     </div>
+                   </div>
+                   
+                   {/* Requirements */}
+                   <div className="mb-4">
+                     <h5 className="font-medium text-sm mb-2">
+                       {getText('Required Documents:', '需要的文档：')}
+                     </h5>
+                     <ul className="text-xs text-muted-foreground space-y-1">
+                       {(language === 'zh' ? activeCategory.requirements_zh : activeCategory.requirements).map((req, idx) => (
+                         <li key={idx} className="flex items-start gap-2">
+                           <span className="text-primary mt-1">•</span>
+                           <span>{req}</span>
+                         </li>
+                       ))}
+                     </ul>
+                   </div>
+                   
+                   {/* Tips */}
+                   <div>
+                     <h5 className="font-medium text-sm mb-2 text-amber-700">
+                       {getText('💡 Tips:', '💡 提示：')}
+                     </h5>
+                     <ul className="text-xs text-amber-700 space-y-1">
+                       {(language === 'zh' ? activeCategory.tips_zh : activeCategory.tips).map((tip, idx) => (
+                         <li key={idx} className="flex items-start gap-2">
+                           <span className="text-amber-600 mt-1">•</span>
+                           <span>{tip}</span>
+                         </li>
+                       ))}
+                     </ul>
+                   </div>
+                 </div>
+
+                 {/* File Upload Area */}
+                 <div
+                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-all mb-6 ${
+                     dragActive 
+                       ? 'border-primary bg-primary/5' 
+                       : 'border-border hover:border-primary/50'
+                   }`}
+                   onDragEnter={handleDrag}
+                   onDragLeave={handleDrag}
+                   onDragOver={handleDrag}
+                   onDrop={handleDrop}
+                 >
+                   <Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                   <p className="text-lg font-medium mb-2">
+                     {getText(`Upload ${activeCategory.name} Documents`, `上传${activeCategory.name_zh}文档`)}
+                   </p>
+                   <p className="text-sm text-muted-foreground mb-4">
+                     {getText('Drag & drop files here or click to browse', '拖拽文件到此处或点击浏览')}
+                   </p>
+                   <input
+                     ref={fileInputRef}
+                     type="file"
+                     multiple
+                     accept={activeCategory.acceptedFormats.map(format => `.${format.toLowerCase()}`).join(',')}
+                     onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                     className="hidden"
+                   />
+                   <button
+                     onClick={() => fileInputRef.current?.click()}
+                     className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                   >
+                     {getText('Choose Files', '选择文件')}
+                   </button>
+                   <p className="text-xs text-muted-foreground mt-2">
+                     {getText(`Supports: ${activeCategory.acceptedFormats.join(', ')}`, `支持：${activeCategory.acceptedFormats.join(', ')}`)}
+                   </p>
+                 </div>
+
+                 {/* Category Files List */}
+                 {categoryFiles.length > 0 && (
+                   <div>
+                     <h4 className="font-medium mb-3 flex items-center gap-2">
+                       <Icon className="w-4 h-4" />
+                       {getText(`${activeCategory.name} Files (${categoryFiles.length})`, `${activeCategory.name_zh}文件 (${categoryFiles.length})`)}
+                     </h4>
+                     <div className="space-y-3">
+                       {categoryFiles.map((file) => (
+                         <div key={file.id} className="flex items-center gap-3 p-3 bg-secondary rounded-lg border">
+                           <div className="flex-1 min-w-0">
+                             <div className="flex items-center gap-2 mb-1">
+                               <h5 className="font-medium truncate">{file.name}</h5>
+                               {file.processed ? (
+                                 <CheckCircleIconSolid className="w-4 h-4 text-green-600 flex-shrink-0" />
+                               ) : (
+                                 <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                               )}
+                             </div>
+                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                               <span>{formatFileSize(file.size)}</span>
+                               <span>•</span>
+                               <span>{file.uploadDate.toLocaleDateString()}</span>
+                             </div>
+                           </div>
+                           <button
+                             onClick={() => removeFile(file.id)}
+                             className="text-red-600 hover:text-red-800 transition-colors p-1"
+                           >
+                             <TrashIcon className="w-4 h-4" />
+                           </button>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             );
+           })()}
+         </div>
 
         {/* Right Column - Generation & Preview */}
         <div>
