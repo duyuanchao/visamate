@@ -61,13 +61,143 @@ interface CoverLetterData {
 }
 
 export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLetterSectionProps) {
+  // Generate mock data
+  const generateMockFiles = (): UploadedFile[] => [
+    // Awards
+    {
+      id: 'mock-award-1',
+      name: 'IEEE_Outstanding_Achievement_Award_2023.pdf',
+      type: 'application/pdf',
+      size: 2450000,
+      uploadDate: new Date('2024-01-15'),
+      processed: true,
+      category: 'award'
+    },
+    {
+      id: 'mock-award-2',
+      name: 'National_Science_Foundation_Excellence_Award.pdf',
+      type: 'application/pdf',
+      size: 1850000,
+      uploadDate: new Date('2024-01-20'),
+      processed: true,
+      category: 'award'
+    },
+    {
+      id: 'mock-award-3',
+      name: 'ACM_Distinguished_Scientist_Certificate.jpg',
+      type: 'image/jpeg',
+      size: 980000,
+      uploadDate: new Date('2024-01-25'),
+      processed: true,
+      category: 'award'
+    },
+    
+    // Publications
+    {
+      id: 'mock-pub-1',
+      name: 'Nature_AI_Breakthrough_Research_2023.pdf',
+      type: 'application/pdf',
+      size: 3200000,
+      uploadDate: new Date('2024-02-01'),
+      processed: true,
+      category: 'publication'
+    },
+    {
+      id: 'mock-pub-2',
+      name: 'Patent_US11234567_ML_Algorithm.pdf',
+      type: 'application/pdf',
+      size: 1560000,
+      uploadDate: new Date('2024-02-05'),
+      processed: true,
+      category: 'publication'
+    },
+    {
+      id: 'mock-pub-3',
+      name: 'Google_Scholar_Citation_Report_H_Index_42.pdf',
+      type: 'application/pdf',
+      size: 890000,
+      uploadDate: new Date('2024-02-10'),
+      processed: true,
+      category: 'publication'
+    },
+    
+    // Media
+    {
+      id: 'mock-media-1',
+      name: 'MIT_Technology_Review_Feature_Article.pdf',
+      type: 'application/pdf',
+      size: 1200000,
+      uploadDate: new Date('2024-02-15'),
+      processed: true,
+      category: 'media'
+    },
+    {
+      id: 'mock-media-2',
+      name: 'Forbes_Tech_Innovator_Interview_2024.pdf',
+      type: 'application/pdf',
+      size: 2100000,
+      uploadDate: new Date('2024-02-20'),
+      processed: true,
+      category: 'media'
+    },
+    
+    // Recommendations
+    {
+      id: 'mock-rec-1',
+      name: 'Stanford_Prof_Dr_Smith_Recommendation.pdf',
+      type: 'application/pdf',
+      size: 450000,
+      uploadDate: new Date('2024-03-01'),
+      processed: true,
+      category: 'recommendation'
+    },
+    {
+      id: 'mock-rec-2',
+      name: 'MIT_Director_Dr_Johnson_Letter.pdf',
+      type: 'application/pdf',
+      size: 520000,
+      uploadDate: new Date('2024-03-05'),
+      processed: true,
+      category: 'recommendation'
+    },
+    {
+      id: 'mock-rec-3',
+      name: 'Google_AI_Lead_Dr_Williams_Reference.pdf',
+      type: 'application/pdf',
+      size: 380000,
+      uploadDate: new Date('2024-03-10'),
+      processed: true,
+      category: 'recommendation'
+    },
+    
+    // Other
+    {
+      id: 'mock-other-1',
+      name: '2023_Tax_Return_W2_High_Salary_Evidence.pdf',
+      type: 'application/pdf',
+      size: 1100000,
+      uploadDate: new Date('2024-03-15'),
+      processed: true,
+      category: 'other'
+    },
+    {
+      id: 'mock-other-2',
+      name: 'AI_Conference_Peer_Review_Record_2024.pdf',
+      type: 'application/pdf',
+      size: 750000,
+      uploadDate: new Date('2024-03-20'),
+      processed: true,
+      category: 'other'
+    }
+  ];
+
   const [coverLetterData, setCoverLetterData] = React.useState<CoverLetterData>({
-    personalInfo: '',
-    evidenceFiles: [],
+    personalInfo: 'Dr. Wei Zhang - AI/ML Research Expert',
+    evidenceFiles: generateMockFiles(), // Initialize with mock data
     generatedContent: '',
     isGenerating: false,
-    wordCount: 0,
-    lastGenerated: null,
+    wordCount: 1850, // Mock word count
+    lastGenerated: new Date('2024-03-25'), // Mock last generation date
     generationProgress: 0
   });
 
@@ -337,64 +467,158 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
   };
 
   const generateSampleCoverLetter = () => {
+    const awardFiles = coverLetterData.evidenceFiles.filter(f => f.category === 'award');
+    const publicationFiles = coverLetterData.evidenceFiles.filter(f => f.category === 'publication');
+    const mediaFiles = coverLetterData.evidenceFiles.filter(f => f.category === 'media');
+    const recommendationFiles = coverLetterData.evidenceFiles.filter(f => f.category === 'recommendation');
+    const otherFiles = coverLetterData.evidenceFiles.filter(f => f.category === 'other');
+
     return language === 'zh' ? 
       `尊敬的移民官：
 
-我谨此提交EB-1A杰出人才移民申请，申请在美国获得永久居留权。作为在[专业领域]领域具有杰出能力的专业人士，我相信我的成就符合EB-1A的所有要求标准。
+我谨此提交EB-1A杰出人才移民申请，申请在美国获得永久居留权。作为在人工智能和机器学习领域具有杰出能力的专业人士，我相信我的成就完全符合EB-1A的所有要求标准。
 
 一、杰出能力证明
-根据提交的证据材料，我在以下方面展现了杰出能力：
+根据提交的${coverLetterData.evidenceFiles.length}份证据材料，我在以下方面展现了杰出能力：
 
-1. 获得国际奖项和荣誉
-我曾获得多项国际级奖项，包括[具体奖项名称]，这些奖项在我的专业领域内具有重要意义和广泛认可度。
+1. 获得国际奖项和荣誉（${awardFiles.length}项证据）
+我曾获得多项国际级奖项，包括：
+• IEEE杰出成就奖2023年度获得者 - 该奖项每年仅颁发给全球10位在电气工程领域做出突出贡献的专家
+• 美国国家科学基金会卓越奖 - 表彰我在AI算法优化方面的突破性研究
+• ACM杰出科学家认证 - 计算机科学领域最高荣誉之一
 
-2. 原创性贡献
-我的研究成果已发表在多个顶级期刊上，H指数达到[数值]，引用次数超过[数值]次（排除自引）。这些研究为行业发展做出了重要贡献。
+这些奖项在我的专业领域内具有重要意义和广泛认可度，证明了我在国际上的杰出地位。
 
-3. 媒体报道
-我的工作成果已被多家权威媒体报道，包括[媒体名称]，这些报道展现了我在该领域的国际影响力。
+2. 原创性贡献（${publicationFiles.length}项证据）
+我的研究成果已发表在多个顶级期刊上：
+• 在《Nature》杂志发表AI突破性研究论文，被引用超过500次
+• 获得美国专利US11234567号"机器学习算法优化系统"，已被多家科技公司采用
+• Google Scholar H指数达到42，总引用次数超过3,200次（排除自引）
+• 研究成果被IBM、Microsoft等公司应用于实际产品中
+
+这些研究为人工智能行业发展做出了重要贡献，推动了技术前沿的发展。
+
+3. 媒体报道（${mediaFiles.length}项证据）
+我的工作成果已被多家权威媒体报道：
+• MIT Technology Review专题报道 - 发行量超过30万，重点介绍我的AI创新成果
+• Forbes科技创新者专访2024 - 全球商业领袖关注的权威媒体平台
+• 被誉为"AI领域的新星"和"推动行业变革的关键人物"
+
+这些报道展现了我在该领域的国际影响力和专业声誉。
+
+4. 专家推荐信（${recommendationFiles.length}封）
+来自国际知名专家的独立推荐：
+• 斯坦福大学Smith教授 - AI领域权威专家，详细阐述了我的技术突破
+• MIT实验室主任Johnson博士 - 机器学习研究先驱，高度评价我的学术贡献
+• Google AI负责人Williams博士 - 工业界顶尖专家，确认我的商业应用价值
+
+5. 其他支持性证据（${otherFiles.length}项证据）
+• 2023年度薪资证明 - 收入水平位于行业前5%，体现了我的市场价值
+• 担任AI顶级会议同行评议专家 - 基于我的专业声誉被邀请评判其他专家的工作
 
 二、未来贡献计划
 移居美国后，我计划在以下方面为美国做出贡献：
-- 推动科技创新和产业发展
-- 培养下一代专业人才
-- 促进国际学术交流与合作
 
-基于以上证据和计划，我恳请移民官批准我的EB-1A申请。
+1. 技术创新推动
+• 在硅谷建立AI研究实验室，专注于下一代机器学习算法开发
+• 与美国顶尖大学合作，推进前沿技术研究
+• 申请更多美国专利，保持美国在AI领域的技术领先地位
+
+2. 人才培养
+• 在斯坦福大学担任客座教授，培养下一代AI专家
+• 建立博士生导师项目，为美国培养高端技术人才
+• 组织国际AI研讨会，吸引全球顶尖人才来美发展
+
+3. 产业发展
+• 与美国科技公司合作，将研究成果转化为实际产品
+• 创立技术公司，创造就业机会
+• 推动AI技术在医疗、教育、环保等领域的应用
+
+4. 国际合作
+• 促进中美科技交流，建立长期合作关系
+• 参与制定AI技术国际标准
+• 代表美国参加国际AI大会和论坛
+
+基于以上${coverLetterData.evidenceFiles.length}份详实证据和明确的未来贡献计划，我恳请移民官批准我的EB-1A申请。我的加入将为美国的科技创新和经济发展带来显著价值。
 
 此致
 敬礼
 
-[申请人姓名]
-[日期]` :
+张伟（Dr. Wei Zhang）
+人工智能专家
+${new Date().toLocaleDateString('zh-CN')}` :
       `Dear Immigration Officer,
 
-I am hereby submitting my EB-1A petition for an individual with extraordinary ability, seeking permanent residence in the United States. As a professional with extraordinary ability in [field], I believe my achievements meet all the required criteria for EB-1A classification.
+I am hereby submitting my EB-1A petition for an individual with extraordinary ability, seeking permanent residence in the United States. As a distinguished professional with extraordinary ability in artificial intelligence and machine learning, I believe my achievements fully satisfy all the required criteria for EB-1A classification.
 
 I. Evidence of Extraordinary Ability
-Based on the submitted evidence, I have demonstrated extraordinary ability in the following areas:
+Based on the ${coverLetterData.evidenceFiles.length} pieces of submitted evidence, I have demonstrated extraordinary ability in the following areas:
 
-1. Receipt of International Awards and Recognition
-I have received multiple international awards, including [specific award names], which carry significant recognition in my professional field.
+1. Receipt of International Awards and Recognition (${awardFiles.length} pieces of evidence)
+I have received multiple prestigious international awards, including:
+• IEEE Outstanding Achievement Award 2023 - awarded annually to only 10 global experts who have made outstanding contributions to electrical engineering
+• National Science Foundation Excellence Award - recognizing my breakthrough research in AI algorithm optimization
+• ACM Distinguished Scientist Certification - one of the highest honors in computer science
 
-2. Original Contributions
-My research has been published in top-tier journals with an H-index of [number] and over [number] citations (excluding self-citations). These contributions have significantly advanced the field.
+These awards carry significant recognition in my professional field and demonstrate my outstanding international standing.
 
-3. Media Coverage
-My work has been featured in authoritative media outlets, including [media names], demonstrating my international influence in the field.
+2. Original Contributions of Major Significance (${publicationFiles.length} pieces of evidence)
+My research has been published in top-tier journals:
+• Published breakthrough AI research in Nature journal, cited over 500 times
+• Granted US Patent No. US11234567 for "Machine Learning Algorithm Optimization System," adopted by multiple tech companies
+• Google Scholar H-index of 42 with over 3,200 total citations (excluding self-citations)
+• Research outcomes applied in actual products by IBM, Microsoft, and other major corporations
+
+These contributions have significantly advanced the artificial intelligence industry and pushed the boundaries of technological innovation.
+
+3. Published Material About Me in Professional Media (${mediaFiles.length} pieces of evidence)
+My work has been featured in authoritative media outlets:
+• MIT Technology Review feature article - circulation over 300,000, highlighting my AI innovations
+• Forbes Tech Innovator Interview 2024 - authoritative business media platform followed by global leaders
+• Recognized as "Rising Star in AI" and "Key Figure Driving Industry Transformation"
+
+This coverage demonstrates my international influence and professional reputation in the field.
+
+4. Expert Recommendation Letters (${recommendationFiles.length} letters)
+Independent recommendations from internationally renowned experts:
+• Professor Smith from Stanford University - AI authority who detailed my technical breakthroughs
+• Dr. Johnson, MIT Lab Director - machine learning research pioneer who highly praised my academic contributions
+• Dr. Williams, Google AI Lead - industry expert who confirmed my commercial application value
+
+5. Additional Supporting Evidence (${otherFiles.length} pieces of evidence)
+• 2023 salary documentation - income level in top 5% of industry, reflecting my market value
+• AI conference peer review expert role - invited to judge other experts' work based on my professional reputation
 
 II. Future Contribution Plans
 Upon immigration to the United States, I plan to contribute in the following ways:
-- Advancing technological innovation and industry development
-- Training the next generation of professionals
-- Facilitating international academic exchange and cooperation
 
-Based on the evidence and plans outlined above, I respectfully request approval of my EB-1A petition.
+1. Technology Innovation Advancement
+• Establish an AI research laboratory in Silicon Valley focusing on next-generation machine learning algorithms
+• Collaborate with top US universities to advance cutting-edge research
+• File additional US patents to maintain America's technological leadership in AI
+
+2. Talent Development
+• Serve as visiting professor at Stanford University, training the next generation of AI experts
+• Establish doctoral mentorship programs to cultivate high-end technical talent for America
+• Organize international AI symposiums to attract global top talent to develop in the US
+
+3. Industry Development
+• Collaborate with US tech companies to transform research into actual products
+• Found technology companies to create employment opportunities
+• Promote AI applications in healthcare, education, environmental protection, and other sectors
+
+4. International Cooperation
+• Facilitate US-China technology exchange and establish long-term cooperative relationships
+• Participate in developing international AI technical standards
+• Represent the US at international AI conferences and forums
+
+Based on the ${coverLetterData.evidenceFiles.length} pieces of substantial evidence and clear future contribution plans outlined above, I respectfully request approval of my EB-1A petition. My addition will bring significant value to America's technological innovation and economic development.
 
 Sincerely,
 
-[Applicant Name]
-[Date]`;
+Dr. Wei Zhang
+Artificial Intelligence Expert
+${new Date().toLocaleDateString('en-US')}`;
   };
 
   const stopGeneration = () => {
@@ -735,22 +959,52 @@ Sincerely,
             </div>
           )}
 
-          {/* Tips */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium text-blue-800 mb-2">
-                  {getText('Generation Tips', '生成提示')}
-                </h4>
-                <div className="text-sm text-blue-700 space-y-1">
-                  <p>• {getText('Upload evidence files from different categories for better results', '上传不同类别的证据文件以获得更好的结果')}</p>
-                  <p>• {getText('Ensure all documents are clearly readable and properly categorized', '确保所有文档清晰可读并正确分类')}</p>
-                  <p>• {getText('Review and customize the generated content before submission', '提交前请审核并自定义生成的内容')}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+                     {/* Tips */}
+           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+             <div className="flex items-start gap-3">
+               <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+               <div>
+                 <h4 className="font-medium text-blue-800 mb-2">
+                   {getText('Generation Tips', '生成提示')}
+                 </h4>
+                 <div className="text-sm text-blue-700 space-y-1">
+                   <p>• {getText('Upload evidence files from different categories for better results', '上传不同类别的证据文件以获得更好的结果')}</p>
+                   <p>• {getText('Ensure all documents are clearly readable and properly categorized', '确保所有文档清晰可读并正确分类')}</p>
+                   <p>• {getText('Review and customize the generated content before submission', '提交前请审核并自定义生成的内容')}</p>
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           {/* Demo Reset Button */}
+           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+             <div className="flex items-center justify-between">
+               <div>
+                 <h5 className="font-medium text-amber-800 text-sm">
+                   {getText('Demo Mode', '演示模式')}
+                 </h5>
+                 <p className="text-xs text-amber-700">
+                   {getText('This is populated with sample data for demonstration', '当前显示的是演示用的示例数据')}
+                 </p>
+               </div>
+               <button
+                 onClick={() => {
+                   setCoverLetterData({
+                     personalInfo: '',
+                     evidenceFiles: [],
+                     generatedContent: '',
+                     isGenerating: false,
+                     wordCount: 0,
+                     lastGenerated: null,
+                     generationProgress: 0
+                   });
+                 }}
+                 className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded transition-colors"
+               >
+                 {getText('Clear Demo Data', '清除演示数据')}
+               </button>
+             </div>
+           </div>
         </div>
       </div>
     </div>
