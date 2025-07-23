@@ -293,7 +293,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         </div>
 
         {/* EB1A Cover Letter Generator - Show when EB1A is selected */}
-        {user?.visaCategory === 'EB-1A' && (
+        {(user?.visaCategory === 'EB-1A' || true) && (
           <div className="mb-8">
             <EB1ACoverLetterSection language={language} onShowUploads={onShowUploads} />
           </div>
