@@ -17,7 +17,8 @@ import {
   AcademicCapIcon,
   NewspaperIcon,
   UserGroupIcon,
-  DocumentIcon
+  DocumentIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
@@ -34,6 +35,7 @@ interface UploadedFile {
   uploadDate: Date;
   processed: boolean;
   category: 'award' | 'publication' | 'media' | 'recommendation' | 'other';
+  mockContent?: string; // For demo downloads
 }
 
 interface EvidenceCategory {
@@ -71,7 +73,34 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 2450000,
       uploadDate: new Date('2024-01-15'),
       processed: true,
-      category: 'award'
+      category: 'award',
+      mockContent: `IEEE OUTSTANDING ACHIEVEMENT AWARD 2023
+
+Certificate of Recognition
+
+This certifies that
+
+Dr. Wei Zhang
+
+has been selected to receive the IEEE Outstanding Achievement Award
+for exceptional contributions to artificial intelligence and machine learning research.
+
+This award recognizes outstanding technical achievements in the field of 
+electrical engineering and computer science, specifically for:
+
+• Development of breakthrough machine learning algorithms with 40% performance improvement
+• Leadership in AI research that has been adopted by major tech companies
+• Significant impact on the advancement of artificial intelligence technology
+
+The IEEE Outstanding Achievement Award is presented annually to no more than 
+10 individuals worldwide who have made exceptional contributions to their field.
+
+Awarded this 15th day of January, 2024
+
+IEEE Awards Committee
+Institute of Electrical and Electronics Engineers
+
+[Official IEEE Seal]`
     },
     {
       id: 'mock-award-2',
@@ -80,7 +109,20 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 1850000,
       uploadDate: new Date('2024-01-20'),
       processed: true,
-      category: 'award'
+      category: 'award',
+      mockContent: `NATIONAL SCIENCE FOUNDATION
+EXCELLENCE AWARD
+
+Awarded to: Dr. Wei Zhang
+Date: January 20, 2024
+
+For outstanding research in AI algorithm optimization
+demonstrating exceptional innovation and scientific impact.
+
+This award recognizes researchers who have made significant
+contributions to advancing the frontiers of science and technology.
+
+[NSF Official Seal]`
     },
     {
       id: 'mock-award-3',
@@ -89,7 +131,26 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 980000,
       uploadDate: new Date('2024-01-25'),
       processed: true,
-      category: 'award'
+      category: 'award',
+      mockContent: `ACM DISTINGUISHED SCIENTIST CERTIFICATE
+
+The Association for Computing Machinery hereby recognizes
+
+Dr. Wei Zhang
+
+as a Distinguished Scientist for significant accomplishments
+in computing and information technology.
+
+This designation is awarded to ACM members with at least
+15 years of professional experience and 5 years of continuous
+professional membership who have achieved significant 
+accomplishments or have made a significant impact on 
+the computing field.
+
+Awarded: January 25, 2024
+ACM President: [Signature]
+
+[ACM Official Logo]`
     },
     
     // Publications
@@ -100,7 +161,32 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 3200000,
       uploadDate: new Date('2024-02-01'),
       processed: true,
-      category: 'publication'
+      category: 'publication',
+      mockContent: `Nature Journal - Breakthrough AI Research 2023
+
+Title: "Revolutionary Machine Learning Algorithm for Autonomous Decision Making"
+
+Authors: Wei Zhang, et al.
+
+Abstract:
+We present a novel machine learning architecture that achieves unprecedented 
+performance in autonomous decision-making tasks. Our approach demonstrates 
+a 40% improvement over existing state-of-the-art methods across multiple 
+benchmark datasets.
+
+Key Contributions:
+• Novel neural network architecture with self-adaptive learning capabilities
+• Breakthrough in computational efficiency for real-time applications
+• Successful deployment in autonomous vehicle navigation systems
+
+This research has been cited over 500 times since publication and has been 
+implemented by major technology companies including IBM and Microsoft.
+
+Published: Nature Volume 615, February 2023
+DOI: 10.1038/s41586-023-05678-9
+Citations: 542 (as of March 2024)
+
+[Nature Journal Official Header]`
     },
     {
       id: 'mock-pub-2',
@@ -109,7 +195,31 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 1560000,
       uploadDate: new Date('2024-02-05'),
       processed: true,
-      category: 'publication'
+      category: 'publication',
+      mockContent: `US PATENT NO. 11,234,567
+
+MACHINE LEARNING ALGORITHM OPTIMIZATION SYSTEM
+
+Inventor: Wei Zhang
+Filed: February 5, 2024
+Granted: February 5, 2024
+
+ABSTRACT
+A novel machine learning optimization system that improves algorithm 
+performance by 40% through dynamic parameter adjustment and real-time 
+learning adaptation.
+
+This patent covers innovative methods for:
+- Autonomous parameter optimization
+- Real-time performance monitoring  
+- Adaptive learning rate adjustment
+- Commercial deployment in production systems
+
+The invention has been licensed to multiple Fortune 500 companies
+including IBM, Microsoft, and Google for implementation in their
+AI-powered products and services.
+
+[USPTO Official Document]`
     },
     {
       id: 'mock-pub-3',
@@ -118,7 +228,29 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 890000,
       uploadDate: new Date('2024-02-10'),
       processed: true,
-      category: 'publication'
+      category: 'publication',
+      mockContent: `GOOGLE SCHOLAR CITATION REPORT
+
+Author: Dr. Wei Zhang
+Generated: February 10, 2024
+
+CITATION METRICS:
+- Total Citations: 3,247 (excluding self-citations: 3,089)
+- H-Index: 42
+- i10-Index: 78
+- Publications: 127
+
+TOP CITED PUBLICATIONS:
+1. "Revolutionary ML Algorithm" - Nature (2023) - 542 citations
+2. "AI Breakthrough in Autonomous Systems" - Science (2022) - 387 citations  
+3. "Deep Learning Optimization" - ICML (2021) - 298 citations
+
+IMPACT SUMMARY:
+Dr. Zhang's research ranks in the top 1% of AI researchers globally.
+His work has been cited by researchers from over 50 countries and
+has been implemented in commercial products reaching millions of users.
+
+[Google Scholar Official Report]`
     },
     
     // Media
@@ -129,7 +261,33 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 1200000,
       uploadDate: new Date('2024-02-15'),
       processed: true,
-      category: 'media'
+      category: 'media',
+      mockContent: `MIT TECHNOLOGY REVIEW
+
+THE AI PIONEER RESHAPING MACHINE LEARNING
+Dr. Wei Zhang's breakthrough algorithms are revolutionizing autonomous systems
+
+Published: February 15, 2024
+By: Sarah Johnson, Senior Technology Editor
+
+In the rapidly evolving world of artificial intelligence, few researchers 
+have made as significant an impact as Dr. Wei Zhang. His latest work, 
+published in Nature journal, represents a quantum leap in machine learning 
+capabilities that industry experts are calling "revolutionary."
+
+"Dr. Zhang's algorithm achieves performance levels we thought were years away," 
+says Dr. Michael Chen, AI Director at Stanford University. "This isn't just 
+an incremental improvement – it's a paradigm shift."
+
+The breakthrough has already attracted attention from major tech companies, 
+with IBM, Microsoft, and Google implementing Zhang's innovations in their 
+production systems. Early results show 40% performance improvements across 
+various applications.
+
+Circulation: 300,000+ subscribers worldwide
+Online readership: 2.5 million monthly unique visitors
+
+[MIT Technology Review - Established 1899]`
     },
     {
       id: 'mock-media-2',
@@ -138,7 +296,37 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 2100000,
       uploadDate: new Date('2024-02-20'),
       processed: true,
-      category: 'media'
+      category: 'media',
+      mockContent: `FORBES MAGAZINE
+
+30 UNDER 30: TECH INNOVATORS CHANGING THE WORLD
+Exclusive Interview with AI Pioneer Dr. Wei Zhang
+
+Published: February 20, 2024
+Forbes Technology Section
+
+Dr. Wei Zhang has been recognized as one of Forbes' most influential 
+tech innovators for his groundbreaking work in artificial intelligence 
+that is reshaping how machines learn and adapt.
+
+Q: What drives your research in AI?
+"I believe AI should enhance human capabilities, not replace them. 
+My algorithms focus on creating systems that can learn and adapt 
+in real-time, making technology more intuitive and responsive."
+
+Q: How do you see the future of AI?
+"We're moving toward truly autonomous systems that can make decisions 
+in complex, unpredictable environments. My research is laying the 
+foundation for AI that can think and adapt like humans."
+
+The interview has been viewed over 500,000 times online and shared 
+across major social media platforms, cementing Zhang's reputation 
+as a thought leader in the AI community.
+
+Forbes Global Circulation: 5.8 million readers
+Digital reach: 150 million monthly visitors
+
+[Forbes Media LLC]`
     },
     
     // Recommendations
@@ -149,7 +337,43 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
       size: 450000,
       uploadDate: new Date('2024-03-01'),
       processed: true,
-      category: 'recommendation'
+      category: 'recommendation',
+      mockContent: `STANFORD UNIVERSITY
+Department of Computer Science
+
+March 1, 2024
+
+To Whom It May Concern:
+
+I am writing to provide my strongest recommendation for Dr. Wei Zhang for his 
+EB-1A petition as an individual with extraordinary ability in artificial intelligence.
+
+As Professor of Computer Science at Stanford University and Director of the 
+AI Research Lab, I have worked closely with Dr. Zhang for the past 5 years 
+and can attest to his exceptional contributions to the field.
+
+Dr. Zhang's research has fundamentally advanced the state of machine learning:
+
+• His breakthrough algorithm published in Nature has been cited over 500 times
+• His work has been implemented by major tech companies with significant impact
+• He has consistently demonstrated innovation that surpasses his peers globally
+
+I rank Dr. Zhang among the top 1% of AI researchers worldwide. His extraordinary 
+ability is evidenced by his recognition from IEEE, NSF, and ACM - honors reserved 
+for the most distinguished scientists in our field.
+
+I am confident that Dr. Zhang will continue to make significant contributions 
+to the United States' technological leadership in artificial intelligence.
+
+Sincerely,
+
+Dr. John Smith, PhD
+Professor of Computer Science
+Stanford University
+Email: jsmith@stanford.edu
+Phone: (650) 723-2273
+
+[Stanford University Official Letterhead]`
     },
     {
       id: 'mock-rec-2',
@@ -637,6 +861,41 @@ ${new Date().toLocaleDateString('en-US')}`;
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const downloadFile = (file: UploadedFile) => {
+    if (!file.mockContent) {
+      alert(getText('This is a demo file with no actual content', '这是演示文件，没有实际内容'));
+      return;
+    }
+
+    // Create blob and download
+    const blob = new Blob([file.mockContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name.replace(/\.[^/.]+$/, '.txt'); // Change extension to .txt for demo
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const downloadCoverLetter = () => {
+    if (!coverLetterData.generatedContent) {
+      alert(getText('Please generate a cover letter first', '请先生成申请信'));
+      return;
+    }
+
+    const blob = new Blob([coverLetterData.generatedContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `EB1A_Cover_Letter_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
 
 
   return (
@@ -847,14 +1106,32 @@ ${new Date().toLocaleDateString('en-US')}`;
                                <span>{formatFileSize(file.size)}</span>
                                <span>•</span>
                                <span>{file.uploadDate.toLocaleDateString()}</span>
+                               {file.mockContent && (
+                                 <>
+                                   <span>•</span>
+                                   <span className="text-blue-600 font-medium">{getText('Demo Content', '演示内容')}</span>
+                                 </>
+                               )}
                              </div>
                            </div>
-                           <button
-                             onClick={() => removeFile(file.id)}
-                             className="text-red-600 hover:text-red-800 transition-colors p-1"
-                           >
-                             <TrashIcon className="w-4 h-4" />
-                           </button>
+                           <div className="flex items-center gap-2">
+                             {file.mockContent && (
+                               <button
+                                 onClick={() => downloadFile(file)}
+                                 className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                                 title={getText('Download demo content', '下载演示内容')}
+                               >
+                                 <ArrowDownTrayIcon className="w-4 h-4" />
+                               </button>
+                             )}
+                             <button
+                               onClick={() => removeFile(file.id)}
+                               className="text-red-600 hover:text-red-800 transition-colors p-1"
+                               title={getText('Remove file', '删除文件')}
+                             >
+                               <TrashIcon className="w-4 h-4" />
+                             </button>
+                           </div>
                          </div>
                        ))}
                      </div>
@@ -940,10 +1217,13 @@ ${new Date().toLocaleDateString('en-US')}`;
                     <EyeIcon className="w-4 h-4" />
                     {showPreview ? getText('Hide', '隐藏') : getText('Preview', '预览')}
                   </button>
-                  <button className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors">
-                    <DocumentArrowDownIcon className="w-4 h-4" />
-                    {getText('Download', '下载')}
-                  </button>
+                                     <button 
+                     onClick={downloadCoverLetter}
+                     className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
+                   >
+                     <DocumentArrowDownIcon className="w-4 h-4" />
+                     {getText('Download', '下载')}
+                   </button>
                 </div>
               </div>
               
