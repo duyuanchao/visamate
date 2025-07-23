@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   DocumentTextIcon,
-  DownloadIcon,
+  ArrowDownTrayIcon,
   AcademicCapIcon,
   TrophyIcon,
   NewspaperIcon,
@@ -1021,7 +1021,7 @@ Attachments:
                   onClick={() => downloadMaterial(material)}
                   className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <DownloadIcon className="h-4 w-4" />
+                  <ArrowDownTrayIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -1067,7 +1067,7 @@ Attachments:
                   onClick={() => downloadMaterial(selectedMaterial)}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  <DownloadIcon className="h-4 w-4 mr-2" />
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                   {getText('Download Template', '下载模板')}
                 </button>
                 <button
