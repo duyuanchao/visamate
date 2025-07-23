@@ -293,10 +293,10 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
           </div>
         </div>
 
-        {/* EB1A Application Management - Show when EB1A is selected */}
+        {/* EB1A Cover Letter Generator - Show when EB1A is selected */}
         {user?.visaCategory === 'EB-1A' && (
           <div className="mb-8">
-            <EB1AApplicationChecklist language={language} onShowUploads={onShowUploads} />
+            <EB1ACoverLetterSection language={language} onShowUploads={onShowUploads} />
           </div>
         )}
 
