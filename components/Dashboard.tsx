@@ -13,6 +13,8 @@ import {
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import { useAuth, useApi } from './AuthContext';
 import { VisaCategorySelector } from './VisaCategorySelector';
+import { EB1ACoverLetterSection } from './EB1ACoverLetterSection';
+import { EB1AApplicationChecklist } from './EB1AApplicationChecklist';
 
 interface DashboardProps {
   onShowUploads: () => void;
@@ -290,6 +292,13 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
             </div>
           </div>
         </div>
+
+        {/* EB1A Application Management - Show when EB1A is selected */}
+        {user?.visaCategory === 'EB-1A' && (
+          <div className="mb-8">
+            <EB1AApplicationChecklist language={language} onShowUploads={onShowUploads} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Timeline */}

@@ -12,6 +12,17 @@ export interface VisaCategory {
   subtitle_zh?: string;
   complexity?: 'low' | 'medium' | 'high';
   estimatedTime?: string;
+  subcategories?: VisaSubcategory[];
+}
+
+export interface VisaSubcategory {
+  code: string;
+  name: string;
+  name_zh: string;
+  description: string;
+  description_zh: string;
+  requirements: string[];
+  requirements_zh: string[];
 }
 
 export interface CategoryGroup {
@@ -51,6 +62,19 @@ export const visaCategories: VisaCategory[] = [
     estimatedTime: '18-36 months',
   },
   {
+    code: 'EB-1A',
+    name: 'Extraordinary Ability',
+    category: 'employment',
+    description: 'For individuals with extraordinary ability in sciences, arts, education, business, or athletics',
+    description_zh: '适用于在科学、艺术、教育、商业或体育方面具有杰出能力的个人',
+    value: 'EB-1A',
+    label: 'EB-1A: Extraordinary Ability',
+    subtitle: 'Self-petitioned green card for extraordinary individuals',
+    subtitle_zh: '杰出人才自主申请绿卡',
+    complexity: 'high',
+    estimatedTime: '15-30 months',
+  },
+  {
     code: 'EB-1',
     name: 'Priority Workers',
     category: 'employment',
@@ -62,6 +86,35 @@ export const visaCategories: VisaCategory[] = [
     subtitle_zh: '适用于具有杰出能力的个人',
     complexity: 'high',
     estimatedTime: '15-30 months',
+    subcategories: [
+      {
+        code: 'EB-1A',
+        name: 'Extraordinary Ability',
+        name_zh: '杰出能力',
+        description: 'For individuals with extraordinary ability in sciences, arts, education, business, or athletics',
+        description_zh: '适用于在科学、艺术、教育、商业或体育方面具有杰出能力的个人',
+        requirements: [
+          'Evidence of extraordinary ability',
+          'Awards and recognition',
+          'Original contributions',
+          'Published materials',
+          'Judging others\' work',
+          'Leading role in organizations',
+          'High salary or remuneration',
+          'Commercial success',
+        ],
+        requirements_zh: [
+          '杰出能力证据',
+          '奖项和表彰',
+          '原创性贡献',
+          '发表材料',
+          '评判他人工作',
+          '在组织中的领导作用',
+          '高薪或高报酬',
+          '商业成功',
+        ]
+      }
+    ]
   },
   {
     code: 'EB-5',
