@@ -4,12 +4,14 @@ import {
   ClipboardDocumentListIcon,
   WrenchScrewdriverIcon,
   DocumentDuplicateIcon,
-  SparklesIcon
+  SparklesIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { EB1ACoverLetterSection } from './EB1ACoverLetterSection';
 import { EB1AApplicationChecklist } from './EB1AApplicationChecklist';
 import { EB1AOptimizedWorkflow } from './EB1AOptimizedWorkflow';
 import { EB1AMockMaterialsGenerator } from './EB1AMockMaterialsGenerator';
+import { EB1ARecommendationLetterGenerator } from './EB1ARecommendationLetterGenerator';
 
 interface EB1AToolsSuiteProps {
   language: 'en' | 'zh';
@@ -56,12 +58,12 @@ export function EB1AToolsSuite({ language, onShowUploads }: EB1AToolsSuiteProps)
       description_zh: 'AI驱动的申请书写作助手'
     },
     {
-      id: 'mock-materials',
-      name: 'Mock Materials',
-      name_zh: '模拟材料',
-      icon: DocumentDuplicateIcon,
-      description: 'Sample documents and templates for your petition',
-      description_zh: '申请所需的示例文档和模板'
+      id: 'recommendation-letter',
+      name: 'Recommendation Letter',
+      name_zh: '推荐信生成器',
+      icon: UserGroupIcon,
+      description: 'Generate professional recommendation letters',
+      description_zh: '生成专业推荐信'
     }
   ];
 
@@ -73,8 +75,8 @@ export function EB1AToolsSuite({ language, onShowUploads }: EB1AToolsSuiteProps)
         return <EB1AApplicationChecklist language={language} onShowUploads={onShowUploads} />;
       case 'cover-letter':
         return <EB1ACoverLetterSection language={language} onShowUploads={onShowUploads} />;
-      case 'mock-materials':
-        return <EB1AMockMaterialsGenerator language={language} />;
+      case 'recommendation-letter':
+        return <EB1ARecommendationLetterGenerator language={language} onShowUploads={onShowUploads} />;
       default:
         return <EB1AOptimizedWorkflow language={language} />;
     }
@@ -191,20 +193,42 @@ export function EB1AToolsSuite({ language, onShowUploads }: EB1AToolsSuiteProps)
           </div>
         </div>
 
-        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <DocumentDuplicateIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <UserGroupIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                {getText('Mock Materials', '模拟材料')}
+              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                {getText('Recommendation Letters', '推荐信')}
               </p>
-              <p className="text-xs text-orange-700 dark:text-orange-300">
-                {getText('Professional templates', '专业模板')}
+              <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                {getText('Professional references', '专业推荐')}
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mock Materials Section */}
+      <div className="mt-8">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <DocumentDuplicateIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {getText('Mock Materials & Templates', '模拟材料和模板')}
+            </h2>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            {getText(
+              'Download professional templates and sample documents for your EB1A petition',
+              '下载EB1A申请所需的专业模板和示例文档'
+            )}
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <EB1AMockMaterialsGenerator language={language} />
         </div>
       </div>
     </div>

@@ -912,6 +912,620 @@ Attachments:
 • List of expert's major publications and awards
 • Documentation of expert's standing in the field
       `
+    },
+    {
+      id: 'academic-recommendation',
+      title: 'Academic Supervisor Recommendation Letter',
+      title_zh: '学术导师推荐信',
+      description: 'Recommendation letter template from academic supervisor/professor',
+      description_zh: '来自学术导师/教授的推荐信模板',
+      category: 'References',
+      category_zh: '推荐',
+      icon: UserGroupIcon,
+      content: `
+[UNIVERSITY LETTERHEAD]
+
+[DATE]
+
+U.S. Citizenship and Immigration Services
+[SERVICE CENTER ADDRESS]
+
+Re: Strong Recommendation for [YOUR NAME] - EB1A Petition
+
+Dear USCIS Officers,
+
+I am writing this letter to provide my strongest possible recommendation for [YOUR NAME] 
+in support of their EB-1A petition for permanent residence in the United States. As 
+[TITLE] at [UNIVERSITY] and [YOUR NAME]'s [RELATIONSHIP - e.g., doctoral advisor, 
+research collaborator], I have had the privilege of observing their extraordinary 
+abilities firsthand over the past [X] years.
+
+RECOMMENDER CREDENTIALS
+
+I am [RECOMMENDER NAME], [TITLE] in the Department of [DEPARTMENT] at [UNIVERSITY]. 
+My academic credentials include:
+• Ph.D. in [FIELD] from [UNIVERSITY] ([YEAR])
+• [X] years of research and teaching experience
+• Author of [X]+ peer-reviewed publications
+• Recipient of [MAJOR ACADEMIC AWARDS]
+• [H-INDEX] with [X]+ citations
+• Editorial board member of [JOURNALS]
+
+My research expertise in [SPECIFIC AREAS] positions me well to evaluate [YOUR NAME]'s 
+exceptional contributions to our field.
+
+PROFESSIONAL RELATIONSHIP
+
+I have known [YOUR NAME] since [YEAR] when they [CONTEXT - e.g., joined our research 
+group, began their doctoral studies]. During this time, I have:
+• Supervised their research on [RESEARCH TOPIC]
+• Collaborated with them on [X] major projects
+• Co-authored [X] publications together
+• Observed their presentations at [X] conferences
+• Witnessed their intellectual growth and impact
+
+EXTRAORDINARY ABILITY ASSESSMENT
+
+In my [X] years of academic experience, I have encountered very few individuals who 
+demonstrate the level of extraordinary ability that [YOUR NAME] possesses. They 
+consistently perform at a level that places them in the top [X]% of researchers 
+in our field globally.
+
+Research Excellence and Innovation:
+[YOUR NAME]'s doctoral/postdoctoral research on [TOPIC] represents a significant 
+breakthrough in [FIELD]. Their work has:
+• Solved the long-standing problem of [SPECIFIC PROBLEM]
+• Introduced novel methodologies that are now widely adopted
+• Generated insights that have influenced [X]+ subsequent studies
+• Been cited [X]+ times since publication
+
+The significance of this work cannot be overstated. Before [YOUR NAME]'s contributions, 
+the field was limited by [LIMITATIONS]. Their innovations have opened entirely new 
+research directions.
+
+Outstanding Academic Performance:
+• Graduated [summa cum laude/with highest honors] from [UNIVERSITY]
+• Achieved [GPA/RANKING] ranking in their graduating class
+• Received [X] academic awards and fellowships
+• Published [X] first-author papers in top-tier journals (Impact Factor [X]+)
+
+Leadership in Research Community:
+Despite their relatively early career stage, [YOUR NAME] has already demonstrated 
+remarkable leadership:
+• Invited speaker at [X] international conferences
+• Organized [WORKSHOP/SESSION] at [CONFERENCE]
+• Serves as reviewer for [X] prestigious journals
+• Mentors [X] junior researchers
+
+SPECIFIC ACHIEVEMENTS THAT DEMONSTRATE EXTRAORDINARY ABILITY
+
+Original Contributions of Major Significance:
+1. [CONTRIBUTION 1]: This work, published in [JOURNAL], has been cited [X] times 
+   and has become a foundational reference in [SUBFIELD].
+
+2. [CONTRIBUTION 2]: The algorithm/method developed by [YOUR NAME] has been 
+   implemented by [X]+ research groups worldwide and is now considered the 
+   standard approach for [PROBLEM TYPE].
+
+3. [CONTRIBUTION 3]: Their theoretical framework for [CONCEPT] has influenced 
+   how the entire field approaches [PROBLEM AREA].
+
+International Recognition:
+• Work featured in [X] international media outlets
+• Invited presentations in [X] countries
+• Collaboration requests from [X] international institutions
+• Methods adopted by researchers across [X] continents
+
+Awards and Honors Reflecting Extraordinary Achievement:
+• [AWARD NAME] ([YEAR]) - Given to top [X]% of [PROFESSION]
+• [FELLOWSHIP NAME] ([YEAR]) - [X] recipients selected from [X]+ applicants
+• [RECOGNITION] ([YEAR]) - For outstanding contribution to [FIELD]
+
+COMPARISON WITH FIELD LEADERS
+
+To provide context for [YOUR NAME]'s achievements, I can compare them to established 
+leaders in our field:
+
+• Their citation rate exceeds that of [X]% of tenured professors in our department
+• Their h-index of [X] is comparable to researchers with [X]+ years of experience
+• The impact of their work rivals that of [ESTABLISHED RESEARCHER NAME], who is 
+  recognized as a pioneer in [AREA]
+
+In terms of innovation and originality, [YOUR NAME]'s contributions are among the 
+most significant I have witnessed in my career.
+
+SUSTAINED EXCELLENCE AND FUTURE POTENTIAL
+
+What sets [YOUR NAME] apart is not just individual achievements, but their 
+consistent pattern of excellence and continued productivity:
+
+Publication Record:
+• [X] publications in the past [X] years
+• Average journal impact factor of [X]
+• [X]% of papers published in top-tier venues
+• Consistent upward trajectory in citation impact
+
+Ongoing Projects:
+[YOUR NAME] is currently leading [X] major research initiatives that promise to 
+further advance the field:
+• [PROJECT 1]: Expected to [IMPACT]
+• [PROJECT 2]: Collaboration with [INSTITUTION/COMPANY]
+• [PROJECT 3]: Addressing critical challenge of [PROBLEM]
+
+IMPACT ON FIELD AND SOCIETY
+
+[YOUR NAME]'s work extends beyond academic achievement to create real-world impact:
+
+Practical Applications:
+• Their algorithms are used in [X]+ commercial products
+• Methods implemented in [X] countries for [APPLICATION]
+• Estimated economic impact of $[AMOUNT] annually
+
+Educational Influence:
+• Research incorporated into curricula at [X]+ universities
+• Textbook chapter dedicated to their contributions
+• [X]+ students trained using their methodologies
+
+RECOMMENDATION FOR EB1A APPROVAL
+
+Based on my assessment as a senior academic with [X] years of experience evaluating 
+researchers, I strongly recommend approval of [YOUR NAME]'s EB-1A petition. They 
+clearly demonstrate:
+
+1. Extraordinary ability through consistently outstanding research
+2. Sustained international acclaim evidenced by citations and invitations
+3. Original contributions of major significance to the field
+4. Recognition from peers at the highest levels
+
+The United States would greatly benefit from [YOUR NAME]'s continued presence. Their 
+research addresses critical challenges in [FIELD] and has direct applications to 
+[SOCIETAL BENEFITS].
+
+I am confident that [YOUR NAME] will continue to make extraordinary contributions 
+and maintain their position among the world's leading researchers in [FIELD].
+
+I am available to discuss this recommendation further if additional information 
+would be helpful.
+
+Sincerely,
+
+[SIGNATURE]
+
+[RECOMMENDER NAME], Ph.D.
+[TITLE]
+[DEPARTMENT]
+[UNIVERSITY]
+[ADDRESS]
+[PHONE]
+[EMAIL]
+
+───────────────────────────────────────────────────────────────────────────────
+Attachments:
+• Recommender's detailed CV
+• List of recommender's publications and citations
+• Evidence of recommender's standing in academic community
+• Documentation of specific collaborations with petitioner
+      `
+    },
+    {
+      id: 'industry-recommendation',
+      title: 'Industry Leader Recommendation Letter',
+      title_zh: '行业领袖推荐信',
+      description: 'Recommendation letter from industry executive or senior professional',
+      description_zh: '来自行业高管或资深专业人士的推荐信',
+      category: 'References',
+      category_zh: '推荐',
+      icon: UserGroupIcon,
+      content: `
+[COMPANY LETTERHEAD]
+
+[DATE]
+
+U.S. Citizenship and Immigration Services
+[SERVICE CENTER ADDRESS]
+
+Subject: Strong Professional Recommendation for [YOUR NAME] - EB1A Extraordinary Ability Petition
+
+Dear Immigration Officers,
+
+As [TITLE] of [COMPANY], one of the leading organizations in [INDUSTRY], I am writing 
+to provide my strongest professional recommendation for [YOUR NAME] in support of 
+their EB-1A petition. Based on my [X] years of industry experience and direct 
+knowledge of [YOUR NAME]'s exceptional contributions, I can confidently attest to 
+their extraordinary ability in [FIELD].
+
+RECOMMENDER BACKGROUND AND CREDENTIALS
+
+I am [RECOMMENDER NAME], [TITLE] at [COMPANY], where I have served for [X] years. 
+My professional background includes:
+• [X] years of executive leadership in [INDUSTRY]
+• Previously held senior positions at [PREVIOUS COMPANIES]
+• [EDUCATION] from [INSTITUTION]
+• Recognized industry expert in [SPECIALIZATION]
+• Board member of [PROFESSIONAL ORGANIZATIONS]
+• Speaker at [X]+ industry conferences annually
+
+[COMPANY] is a [DESCRIPTION] company with [X]+ employees and annual revenue of 
+$[AMOUNT], serving clients in [X]+ countries. We are recognized as an industry 
+leader and our assessments carry significant weight in the professional community.
+
+PROFESSIONAL RELATIONSHIP WITH PETITIONER
+
+I have known [YOUR NAME] professionally since [YEAR] through [CONTEXT]. Our 
+interactions have included:
+• Collaboration on [PROJECT/INITIATIVE]
+• Their consultation on [TECHNICAL CHALLENGE]
+• Joint participation in [INDUSTRY EVENT/COMMITTEE]
+• Implementation of their innovations in our operations
+
+This relationship has given me detailed insight into [YOUR NAME]'s exceptional 
+capabilities and industry impact.
+
+ASSESSMENT OF EXTRAORDINARY ABILITY
+
+In my [X] years in [INDUSTRY], I have worked with hundreds of professionals, 
+including many with advanced degrees and significant experience. [YOUR NAME] 
+stands out as one of the most extraordinary talents I have encountered, 
+demonstrating abilities that place them among the top [X]% of professionals 
+in our field.
+
+Innovation and Problem-Solving Excellence:
+[YOUR NAME]'s approach to [SPECIFIC AREA] has revolutionized how our industry 
+addresses [PROBLEM TYPE]. Their development of [INNOVATION] has:
+• Reduced operational costs industry-wide by an average of [X]%
+• Improved efficiency metrics by [X]% across implementations
+• Enabled new capabilities previously thought impossible
+• Been adopted by [X]+ major companies globally
+
+Technical Leadership:
+• Recognized as the foremost expert in [SPECIALIZATION]
+• Consulted by [X]+ Fortune 500 companies on [TECHNICAL AREA]
+• Their methodologies now taught in [X]+ business schools
+• Patents granted for [X] innovative solutions
+
+SPECIFIC CONTRIBUTIONS TO INDUSTRY
+
+Direct Impact on Our Organization:
+Our implementation of [YOUR NAME]'s [SOLUTION/METHOD] has resulted in:
+• Annual cost savings of $[AMOUNT]
+• [X]% improvement in [METRIC]
+• Enhanced competitive position in [MARKET SEGMENT]
+• New revenue opportunities worth $[AMOUNT]
+
+Industry-Wide Transformation:
+[YOUR NAME]'s contributions have fundamentally changed industry practices:
+
+1. [CONTRIBUTION 1]: Their work on [TOPIC] has become the industry standard, 
+   adopted by [X]+ organizations including [MAJOR COMPANIES].
+
+2. [CONTRIBUTION 2]: The framework they developed for [PROCESS] has improved 
+   industry-wide performance by measurable margins.
+
+3. [CONTRIBUTION 3]: Their insights into [AREA] have influenced regulatory 
+   standards and best practices globally.
+
+INTERNATIONAL RECOGNITION AND ACCLAIM
+
+Professional Standing:
+• Keynote speaker at [X] international industry conferences
+• Invited expert at [MAJOR INDUSTRY EVENTS]
+• Quoted as industry authority in [X]+ major publications
+• Serves on advisory boards of [X] organizations
+
+Global Influence:
+• Their work implemented across [X] countries
+• Consulting engagements with [INTERNATIONAL COMPANIES]
+• Recognition from [INTERNATIONAL INDUSTRY BODIES]
+• Methods translated and adapted for [X] different markets
+
+Awards and Professional Recognition:
+• [INDUSTRY AWARD] ([YEAR]) - [DESCRIPTION OF SIGNIFICANCE]
+• [PROFESSIONAL RECOGNITION] ([YEAR]) - [SELECTION CRITERIA]
+• [LEADERSHIP AWARD] ([YEAR]) - [NUMBER OF RECIPIENTS]
+
+SUSTAINED EXCELLENCE AND PRODUCTIVITY
+
+Career Trajectory Demonstrating Extraordinary Ability:
+[YEAR]: [EARLY ACHIEVEMENT]
+[YEAR]: [MAJOR BREAKTHROUGH]
+[YEAR]: [INDUSTRY RECOGNITION]
+[YEAR]: [CURRENT LEADERSHIP ROLE]
+
+This progression demonstrates not just individual achievements, but sustained 
+excellence that characterizes extraordinary ability.
+
+Current Industry Leadership:
+• Leading [X] major industry initiatives
+• Mentoring [X] senior professionals
+• Driving innovation in [EMERGING AREAS]
+• Shaping future direction of [INDUSTRY SEGMENT]
+
+COMPARISON WITH INDUSTRY LEADERS
+
+To provide proper context, I can compare [YOUR NAME]'s achievements with other 
+recognized industry leaders:
+
+• Their innovation impact rivals that of [ESTABLISHED INDUSTRY LEADER]
+• Professional recognition comparable to [INDUSTRY PIONEER]
+• Rate of breakthrough contributions exceeds industry averages by [X]%
+• Influence on industry practices matches that of [TOP PROFESSIONAL]
+
+In my assessment, [YOUR NAME] represents the caliber of extraordinary talent that 
+drives industry evolution and maintains competitive advantage.
+
+CRITICAL ROLE AND HIGH REMUNERATION
+
+Leadership Responsibilities:
+[YOUR NAME] currently serves in critical roles that demonstrate their extraordinary 
+value:
+• [LEADERSHIP POSITION] at [ORGANIZATION]
+• Responsible for [X]+ person team and $[BUDGET]
+• Strategic oversight of [CRITICAL FUNCTION]
+• Decision authority for [MAJOR INITIATIVES]
+
+Professional Compensation:
+Based on industry knowledge, [YOUR NAME]'s compensation is in the top [X]% for 
+professionals in [FIELD], reflecting market recognition of their extraordinary value.
+
+RECOMMENDATION AND CONCLUSION
+
+Based on my professional assessment and industry experience, I strongly recommend 
+approval of [YOUR NAME]'s EB-1A petition. They demonstrate extraordinary ability through:
+
+1. Sustained record of innovation and industry leadership
+2. International recognition and acclaim from professional peers
+3. Original contributions that have transformed industry practices
+4. Critical role in major organizations with distinguished reputations
+5. Compensation reflecting their extraordinary value to the field
+
+The United States would greatly benefit from retaining such exceptional industry 
+talent. [YOUR NAME]'s continued presence will contribute to American competitiveness 
+in [INDUSTRY] and drive continued innovation.
+
+I am available to provide additional information or clarification as needed.
+
+Best regards,
+
+[SIGNATURE]
+
+[RECOMMENDER NAME]
+[TITLE]
+[COMPANY]
+[ADDRESS]
+[PHONE]
+[EMAIL]
+
+───────────────────────────────────────────────────────────────────────────────
+Attachments:
+• Detailed company profile and industry standing
+• Recommender's professional biography and achievements
+• Documentation of specific collaborations and results
+• Industry reports citing petitioner's contributions
+      `
+    },
+    {
+      id: 'international-expert-recommendation',
+      title: 'International Expert Recommendation Letter',
+      title_zh: '国际专家推荐信',
+      description: 'Recommendation from internationally recognized expert in the field',
+      description_zh: '来自该领域国际知名专家的推荐信',
+      category: 'References',
+      category_zh: '推荐',
+      icon: UserGroupIcon,
+      content: `
+[INSTITUTIONAL LETTERHEAD]
+
+[DATE]
+
+United States Citizenship and Immigration Services
+[SERVICE CENTER ADDRESS]
+
+RE: Expert Recommendation for [YOUR NAME] - EB1A Extraordinary Ability Classification
+
+Distinguished Officers,
+
+I am honored to provide this expert recommendation for [YOUR NAME] in support of 
+their EB-1A petition for permanent residence in the United States. As an internationally 
+recognized authority in [FIELD] with extensive global perspective, I can attest to 
+[YOUR NAME]'s extraordinary ability and their standing among the world's leading 
+professionals in our field.
+
+EXPERT CREDENTIALS AND INTERNATIONAL STANDING
+
+I am [EXPERT NAME], [TITLE] at [INSTITUTION] in [COUNTRY]. My international 
+credentials include:
+• [ADVANCED DEGREE] from [PRESTIGIOUS UNIVERSITY] ([YEAR])
+• [X] years of international research and professional experience
+• [X]+ publications in leading international journals
+• Collaborations with institutions in [X]+ countries
+• [H-INDEX] with [X]+ citations from researchers worldwide
+• Fellow of [INTERNATIONAL PROFESSIONAL SOCIETIES]
+• Recipient of [INTERNATIONAL AWARDS/HONORS]
+
+Professional Recognition:
+• Editorial board member of [X] international journals
+• Keynote speaker at [X]+ international conferences annually
+• Consultant to [INTERNATIONAL ORGANIZATIONS]
+• Expert advisor to [GOVERNMENT AGENCIES/INTERNATIONAL BODIES]
+
+GLOBAL PERSPECTIVE ON THE FIELD
+
+My international experience positions me uniquely to assess [YOUR NAME]'s global 
+standing. I maintain active collaborations with leading researchers and institutions 
+across [X] continents, including:
+• [INSTITUTION 1] in [COUNTRY]
+• [INSTITUTION 2] in [COUNTRY]
+• [INSTITUTION 3] in [COUNTRY]
+• [MAJOR COMPANIES] in [COUNTRIES]
+
+This global network provides me with comprehensive insight into international 
+standards of excellence and the relative standing of professionals worldwide.
+
+RELATIONSHIP WITH PETITIONER
+
+I became aware of [YOUR NAME]'s work in [YEAR] through [CONTEXT - e.g., their 
+publication in [JOURNAL], presentation at [CONFERENCE]]. Since then, I have:
+• Followed their research developments closely
+• Cited their work in [X] of my publications
+• Invited them to speak at [INTERNATIONAL EVENT]
+• Implemented their methodologies in my research
+• Collaborated on [PROJECT/INITIATIVE]
+
+Importantly, this relationship is based purely on professional merit and mutual 
+research interests, providing an independent assessment of their capabilities.
+
+ASSESSMENT OF EXTRAORDINARY ABILITY FROM INTERNATIONAL PERSPECTIVE
+
+Based on my global view of the field, [YOUR NAME] demonstrates extraordinary ability 
+that places them among the top [X]% of professionals worldwide in [FIELD]. This 
+assessment is based on internationally recognized criteria of excellence.
+
+International Impact and Recognition:
+[YOUR NAME]'s contributions have achieved global significance:
+• Research cited by scholars in [X]+ countries
+• Methods implemented across [X] continents
+• Invited presentations at major international conferences in [COUNTRIES]
+• Collaboration requests from [X]+ international institutions
+• Work featured in international media and trade publications
+
+Comparison with International Standards:
+In my assessment of professionals across [X] countries, [YOUR NAME]'s achievements 
+rank among the most significant:
+• Publication record exceeds international benchmarks for excellence
+• Citation impact comparable to established leaders from [PRESTIGIOUS INSTITUTIONS]
+• Innovation rate and significance matches top researchers globally
+• Professional recognition spans multiple countries and cultural contexts
+
+SPECIFIC CONTRIBUTIONS WITH INTERNATIONAL SIGNIFICANCE
+
+Breakthrough Research with Global Impact:
+1. [CONTRIBUTION 1]: This work, published in [INTERNATIONAL JOURNAL], has been 
+   translated into [X] languages and implemented by organizations in [X] countries.
+
+2. [CONTRIBUTION 2]: The methodology developed by [YOUR NAME] has become the 
+   international standard, adopted by [INTERNATIONAL ORGANIZATIONS] and taught 
+   in universities across [X] continents.
+
+3. [CONTRIBUTION 3]: Their theoretical framework has influenced international 
+   standards and practices, with formal adoption by [INTERNATIONAL BODIES].
+
+Cross-Cultural Professional Excellence:
+• Successful presentations to diverse international audiences
+• Collaborative work with professionals from [X] different cultural backgrounds
+• Adaptation of solutions for various international contexts
+• Recognition from international professional organizations
+
+INTERNATIONAL AWARDS AND HONORS
+
+[YOUR NAME] has received recognition from international bodies that demonstrates 
+extraordinary ability on a global scale:
+
+• [INTERNATIONAL AWARD] ([YEAR]): [DESCRIPTION AND SIGNIFICANCE]
+  - Selected from [X]+ international nominees
+  - Previous recipients include [NOTABLE FIGURES]
+  - Recognition criteria: [STANDARDS FOR EXTRAORDINARY ACHIEVEMENT]
+
+• [GLOBAL RECOGNITION] ([YEAR]): [DESCRIPTION]
+  - [X] recipients selected annually worldwide
+  - Represents top [X]% of professionals globally
+
+• [INTERNATIONAL FELLOWSHIP] ([YEAR]): [DESCRIPTION]
+  - Membership limited to [X] individuals globally
+  - Selection based on extraordinary contributions to the field
+
+SUSTAINED INTERNATIONAL INFLUENCE
+
+Ongoing Global Leadership:
+[YOUR NAME] continues to demonstrate extraordinary ability through sustained 
+international influence:
+• Advisory roles with [INTERNATIONAL ORGANIZATIONS]
+• Editorial responsibilities for [GLOBAL PUBLICATIONS]
+• Steering committee member for [INTERNATIONAL INITIATIVES]
+• Mentor to emerging professionals across [X] countries
+
+Future International Impact:
+Current projects position [YOUR NAME] for continued global influence:
+• [PROJECT 1]: International consortium involving [X] countries
+• [PROJECT 2]: Global implementation expected in [X]+ regions
+• [PROJECT 3]: Collaboration with [INTERNATIONAL INSTITUTION]
+
+COMPARATIVE ANALYSIS WITH GLOBAL LEADERS
+
+To provide proper perspective, I can compare [YOUR NAME] with internationally 
+recognized leaders in our field:
+
+Research Impact:
+• Citation rate comparable to [INTERNATIONAL LEADER 1] from [COUNTRY]
+• Innovation significance matches [INTERNATIONAL LEADER 2] from [COUNTRY]
+• Global influence rivals [INTERNATIONAL LEADER 3] from [COUNTRY]
+
+Professional Standing:
+• International speaking invitations equal to top researchers globally
+• Cross-cultural collaborative success exceeds typical patterns
+• Global network and influence span [X] countries
+
+Recognition Pattern:
+• Award timeline comparable to established international leaders
+• Selection for honors matches pattern of extraordinary achievers
+• International visibility appropriate for top [X]% of field
+
+INTERNATIONAL PERSPECTIVE ON US BENEFIT
+
+From an international viewpoint, the United States would gain significant advantage 
+by retaining [YOUR NAME]:
+
+Global Competitiveness:
+• Their expertise maintains US leadership in [FIELD]
+• Innovation contributions keep US standards at international forefront
+• Collaborative networks enhance US international research relationships
+
+International Collaboration:
+• [YOUR NAME] serves as bridge between US and international research communities
+• Their presence facilitates beneficial international partnerships
+• Global recognition enhances US reputation in [FIELD]
+
+Knowledge Transfer:
+• International best practices brought to US institutions
+• Cross-cultural insights enhance US approaches
+• Global perspective enriches US research and development
+
+STRONG RECOMMENDATION FOR APPROVAL
+
+Based on my international expertise and global perspective on the field, I provide 
+my strongest recommendation for approval of [YOUR NAME]'s EB-1A petition. From an 
+international standpoint, they clearly demonstrate:
+
+1. Extraordinary ability recognized globally across multiple countries
+2. Sustained international acclaim evidenced by cross-cultural recognition
+3. Original contributions with documented worldwide impact
+4. Standing among international leaders in the field
+5. Continued potential for global influence and US benefit
+
+The extraordinary ability standard should be assessed against international benchmarks, 
+and by these measures, [YOUR NAME] clearly qualifies. The United States would greatly 
+benefit from their continued presence and contributions.
+
+I am available for additional consultation to provide further international perspective 
+on this exceptional candidate.
+
+Respectfully submitted,
+
+[SIGNATURE]
+
+[EXPERT NAME], [DEGREE]
+[TITLE]
+[INSTITUTION]
+[COUNTRY]
+[PHONE]
+[EMAIL]
+
+───────────────────────────────────────────────────────────────────────────────
+International Credentials Documentation:
+• Complete CV with international experience details
+• List of international collaborations and projects
+• Documentation of global professional standing
+• International awards and recognition certificates
+      `
     }
   ];
 
