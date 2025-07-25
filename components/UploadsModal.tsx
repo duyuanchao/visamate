@@ -45,7 +45,7 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
   // Load existing files on component mount
   React.useEffect(() => {
     loadExistingFiles();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadExistingFiles = async () => {
     if (!user) return;

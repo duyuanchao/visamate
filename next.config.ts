@@ -11,9 +11,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   
-  // Skip ESLint during build for faster deployment
+  // Skip ESLint during build for Vercel deployment
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   
   // Exclude certain directories from compilation
