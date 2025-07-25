@@ -48,12 +48,19 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadExistingFiles = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user available, skipping file load');
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('Loading existing files for user:', user.email);
+      
       const response = await api.get('/make-server-54a8f580/user/files');
-      if (response.files) {
+      console.log('Existing files response:', response);
+      
+      if (response && response.success && response.files) {
         const files = response.files.map((file: any) => ({
           id: file.id,
           name: file.name,
@@ -65,10 +72,24 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           extractedData: file.extractedData || [],
           fileUrl: file.fileUrl,
         }));
+        
+        console.log(`Loaded ${files.length} existing files:`, files);
         setUploadedFiles(files);
+      } else if (response && !response.success) {
+        console.error('Failed to load files:', response.error);
+        setUploadedFiles([]);
+      } else {
+        console.log('No files found or unexpected response format');
+        setUploadedFiles([]);
       }
     } catch (error) {
       console.error('Error loading existing files:', error);
+      setUploadedFiles([]);
+      
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        console.error('File loading error details:', error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -225,12 +246,17 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
 
   const processFileOCR = async (fileId: string, fileUrl: string) => {
     try {
+      console.log('Starting OCR processing for file:', fileId);
+      
       const response = await api.post('/make-server-54a8f580/ocr/process', {
         fileId,
         fileUrl,
       });
 
+      console.log('OCR processing response:', response);
+
       if (response.success) {
+        // Update local state first
         setUploadedFiles(prev =>
           prev.map(f => {
             if (f.id === fileId) {
@@ -249,18 +275,44 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           })
         );
 
-        // Save file record to user's profile
-        await api.post('/make-server-54a8f580/user/files', {
-          fileId,
-          name: uploadedFiles.find(f => f.id === fileId)?.name,
-          fileUrl,
-          extractedData: response.extractedData,
-        });
+        // Save file record to user's profile with retry logic
+        const fileName = uploadedFiles.find(f => f.id === fileId)?.name || 'unknown-file';
+        let saveSuccess = false;
+        let retryCount = 0;
+        const maxRetries = 3;
 
-        // Notify dashboard to refresh user data
-        window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId } }));
+        while (!saveSuccess && retryCount < maxRetries) {
+          try {
+            console.log(`Attempting to save file record (attempt ${retryCount + 1}):`, { fileId, fileName });
+            
+            const saveResponse = await api.post('/make-server-54a8f580/user/files', {
+              fileId,
+              name: fileName,
+              fileUrl,
+              extractedData: response.extractedData,
+            });
+
+            console.log('File save response:', saveResponse);
+            saveSuccess = true;
+            
+            // Notify dashboard to refresh user data
+            window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId, fileName } }));
+            
+          } catch (saveError) {
+            retryCount++;
+            console.error(`File save attempt ${retryCount} failed:`, saveError);
+            
+            if (retryCount >= maxRetries) {
+              console.error('Failed to save file record after all retries');
+              throw new Error(`Failed to save file record: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`);
+            }
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          }
+        }
       } else {
-        throw new Error('OCR processing failed');
+        throw new Error(`OCR processing failed: ${response.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('OCR processing error:', error);
@@ -276,6 +328,9 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           return f;
         })
       );
+      
+      // Re-throw the error so it can be handled by the upload function
+      throw error;
     }
   };
 

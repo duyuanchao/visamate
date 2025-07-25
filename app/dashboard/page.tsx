@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const [language, setLanguage] = useState<'en' | 'zh'>('en');
   const [showUploadsModal, setShowUploadsModal] = useState(false);
 
@@ -37,10 +37,20 @@ export default function DashboardPage() {
     setShowUploadsModal(true);
   };
 
-  const handleCloseUploads = () => {
+  const handleCloseUploads = async () => {
     setShowUploadsModal(false);
-    // Trigger a page refresh to reload user data and file statistics
-    window.location.reload();
+    
+    // Refresh data without full page reload
+    try {
+      // Re-fetch user data to get updated file counts and RFE risk
+      await refreshUser();
+      
+      console.log('User data refreshed after upload modal close');
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+      // Fallback to page reload if refresh fails
+      window.location.reload();
+    }
   };
 
   const handleNavigation = (page: string) => {
