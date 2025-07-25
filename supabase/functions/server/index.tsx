@@ -101,7 +101,7 @@ const authMiddleware = async (c: any, next: any) => {
 };
 
 // File upload endpoint
-app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c) => {
+app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     console.log('File upload request from user:', userId);
@@ -187,7 +187,7 @@ app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c) => {
 });
 
 // OCR processing endpoint
-app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c) => {
+app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     const { fileId, fileUrl } = await c.req.json();
@@ -247,7 +247,7 @@ app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c) => {
 });
 
 // Get user's files
-app.get('/make-server-54a8f580/user/files', authMiddleware, async (c) => {
+app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     console.log('Get user files request from:', userId);
@@ -292,7 +292,7 @@ app.get('/make-server-54a8f580/user/files', authMiddleware, async (c) => {
 });
 
 // Save file record to user profile
-app.post('/make-server-54a8f580/user/files', authMiddleware, async (c) => {
+app.post('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     const { fileId, name, fileUrl, extractedData } = await c.req.json();
@@ -324,7 +324,7 @@ app.post('/make-server-54a8f580/user/files', authMiddleware, async (c) => {
 });
 
 // Delete user's file
-app.delete('/make-server-54a8f580/user/files/:fileId', authMiddleware, async (c) => {
+app.delete('/make-server-54a8f580/user/files/:fileId', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     const fileId = c.req.param('fileId');
@@ -358,7 +358,7 @@ app.delete('/make-server-54a8f580/user/files/:fileId', authMiddleware, async (c)
 });
 
 // User profile endpoint (for compatibility)
-app.get('/make-server-54a8f580/user/profile', authMiddleware, async (c) => {
+app.get('/make-server-54a8f580/user/profile', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
     const token = c.get('token');
@@ -397,7 +397,7 @@ app.get('/make-server-54a8f580/user/profile', authMiddleware, async (c) => {
 });
 
 // User timeline endpoint (for compatibility)
-app.get('/make-server-54a8f580/user/timeline', authMiddleware, async (c) => {
+app.get('/make-server-54a8f580/user/timeline', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
 
@@ -440,7 +440,7 @@ app.get('/make-server-54a8f580/user/timeline', authMiddleware, async (c) => {
 });
 
 // User checklist endpoint (for compatibility)
-app.get('/make-server-54a8f580/user/checklist', authMiddleware, async (c) => {
+app.get('/make-server-54a8f580/user/checklist', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
 

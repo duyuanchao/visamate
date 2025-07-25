@@ -298,21 +298,7 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         )}
 
         {/* Refresh data when upload modal closes */}
-        {React.createElement('div', { 
-          style: { display: 'none' },
-          ref: React.useCallback((node: any) => {
-            if (node) {
-              // Listen for custom events from upload modal
-              const handleFileUploaded = () => {
-                console.log('File uploaded, refreshing user data');
-                refreshUser();
-              };
-              
-              window.addEventListener('fileUploaded', handleFileUploaded);
-              return () => window.removeEventListener('fileUploaded', handleFileUploaded);
-            }
-          }, [refreshUser])
-        })}
+        <div style={{ display: 'none' }} />
 
 
 
