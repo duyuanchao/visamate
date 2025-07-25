@@ -312,20 +312,30 @@ app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c: any) => 
 app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
+    console.log('===== GET USER FILES DEBUG =====');
     console.log('Get user files request from:', userId);
+    console.log('Request time:', new Date().toISOString());
 
     const userFilesKey = `user_files_${userId}`;
+    console.log('Looking for user files with key:', userFilesKey);
+    
     const userFiles = await kv.get(userFilesKey);
+    console.log('Raw user files data from KV store:', JSON.stringify(userFiles, null, 2));
 
     const files = userFiles?.files || [];
+    console.log(`Found ${files.length} files in user file list`);
 
     // Enrich files with full data for display
     const enrichedFiles = await Promise.all(
-      files.map(async (file: any) => {
+      files.map(async (file: any, index: number) => {
+        console.log(`Processing file ${index + 1}/${files.length}: ${file.name} (${file.id})`);
+        
         const fileKey = `user_file_${userId}_${file.id}`;
         const fullFileRecord = await kv.get(fileKey);
         
-        return {
+        console.log(`Full file record for ${file.id}:`, fullFileRecord ? 'Found' : 'Not found');
+        
+        const enrichedFile = {
           id: file.id,
           name: file.name,
           size: file.size,
@@ -336,16 +346,32 @@ app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
           fileUrl: fullFileRecord?.content ? `data:${file.type};base64,${fullFileRecord.content}` : null,
           processedAt: file.processedAt
         };
+        
+        console.log(`Enriched file ${file.id}:`, JSON.stringify(enrichedFile, null, 2));
+        return enrichedFile;
       })
     );
 
+    console.log('===== FINAL RESPONSE =====');
+    console.log(`Returning ${enrichedFiles.length} enriched files`);
+    console.log('Response:', JSON.stringify({ success: true, files: enrichedFiles }, null, 2));
+    console.log('===== END DEBUG =====');
+
     return c.json({
       success: true,
-      files: enrichedFiles
+      files: enrichedFiles,
+      debug: {
+        userId,
+        userFilesKey,
+        rawFileCount: files.length,
+        enrichedFileCount: enrichedFiles.length,
+        timestamp: new Date().toISOString()
+      }
     });
 
   } catch (error: any) {
     console.error('Error getting user files:', error);
+    console.error('Error stack:', error.stack);
     return c.json({ 
       error: 'Failed to get files', 
       details: error.message 

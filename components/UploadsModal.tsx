@@ -47,7 +47,7 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
     loadExistingFiles();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadExistingFiles = async () => {
+  const loadExistingFiles = async (forceReload = false) => {
     if (!user) {
       console.log('No user available, skipping file load');
       return;
@@ -55,9 +55,11 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
     
     try {
       setLoading(true);
-      console.log('Loading existing files for user:', user.email);
+      console.log('Loading existing files for user:', user.email, forceReload ? '(force reload)' : '');
       
-      const response = await api.get('/make-server-54a8f580/user/files');
+      // Add cache busting parameter to force reload
+      const cacheBuster = forceReload ? `?t=${Date.now()}` : '';
+      const response = await api.get(`/make-server-54a8f580/user/files${cacheBuster}`);
       console.log('Existing files response:', response);
       
       if (response && response.success && response.files) {
@@ -295,10 +297,16 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
             console.log('File save response:', saveResponse);
             saveSuccess = true;
             
-            // Notify dashboard to refresh user data
-            window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId, fileName } }));
-            
-          } catch (saveError) {
+                         // Notify dashboard to refresh user data
+             window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId, fileName } }));
+             
+             // Force refresh the file list immediately
+             console.log('File saved successfully, refreshing file list...');
+             setTimeout(() => {
+               loadExistingFiles(true);
+             }, 500);
+             
+           } catch (saveError) {
             retryCount++;
             console.error(`File save attempt ${retryCount} failed:`, saveError);
             
@@ -430,6 +438,18 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
 
         {/* Upload Area */}
         <div className="p-6 border-b border-border">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">
+              {getText('File Upload', '文件上传')}
+            </h3>
+            <button
+              onClick={() => loadExistingFiles(true)}
+              className="text-sm bg-secondary hover:bg-secondary/80 text-secondary-foreground px-3 py-1 rounded-md transition-colors"
+            >
+              {getText('Force Refresh Files', '强制刷新文件')}
+            </button>
+          </div>
+          
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer hover:bg-neutral/50 ${
               isDragging 
