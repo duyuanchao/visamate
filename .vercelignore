@@ -1,5 +1,5 @@
 # Exclude supabase functions from Vercel build
-supabase/
+supabase/functions/
 
 # Node modules
 node_modules/
