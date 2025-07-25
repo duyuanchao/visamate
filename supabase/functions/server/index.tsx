@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import * as kv from "./kv_store"; // 假设你的 kv_store.tsx 文件路径没变
 
 const app = new Hono();
@@ -15,16 +15,16 @@ app.use('*', cors({
 app.use('*', logger(console.log));
 
 // Supabase client with service role for admin operations
-// const supabaseAdmin = createClient(
-//     process.env.SUPABASE_URL!,
-//     process.env.SUPABASE_SERVICE_ROLE_KEY!
-// );
-//
-// // Supabase client with anon key for user operations
-// const supabaseAnon = createClient(
-//     process.env.SUPABASE_URL!,
-//     process.env.SUPABASE_ANON_KEY!
-// );
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Supabase client with anon key for user operations
+const supabaseAnon = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
+);
 
 // Health check endpoint
 app.get('/make-server-54a8f580/health', async (c) => {
@@ -93,35 +93,25 @@ const authMiddleware = async (c: any, next: any) => {
       const userId = token.split('-')[2] || 'user123';
       c.set('userId', userId);
       c.set('token', token);
+      c.set('user', { id: userId, email: `${userId}@demo.com` });
       console.log('Demo token authenticated for user:', userId);
       await next();
       return;
     }
 
-    // For real JWT tokens, we would validate with Supabase
-    // Since this is a simplified implementation, we'll extract user ID from token
-    // In production, use proper JWT validation:
-    /*
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!
-    );
-    
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    // Validate real Supabase JWT tokens
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
+      console.error('JWT validation failed:', error?.message || 'No user found');
       return c.json({ error: 'Invalid token', details: error?.message }, 401);
     }
 
+    // Set user info in context
     c.set('userId', user.id);
     c.set('user', user);
-    */
-    
-    // Simplified token handling for demo
-    const userId = 'user-' + token.substring(0, 8);
-    c.set('userId', userId);
     c.set('token', token);
-    console.log('Token authenticated for user:', userId);
+    console.log('JWT token authenticated for user:', user.email, user.id);
     
   } catch (error) {
     console.error('Token validation error:', error);
@@ -131,22 +121,10 @@ const authMiddleware = async (c: any, next: any) => {
   await next();
 };
 
-// File upload endpoint (temporarily remove auth for debugging)
-app.post('/make-server-54a8f580/upload/file', async (c: any) => {
+// File upload endpoint
+app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c: any) => {
   try {
-    // Temporarily extract userId from request for debugging
-    const authHeader = c.req.header('Authorization');
-    let userId = 'anonymous-user';
-    
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      if (token.includes('demo-token-')) {
-        userId = token.split('-')[2] || 'user123';
-      } else {
-        userId = 'user-' + token.substring(0, 8);
-      }
-    }
-    
+    const userId = c.get('userId');
     console.log('File upload request from user:', userId);
 
     // Parse form data
@@ -330,21 +308,10 @@ app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c: any) => 
   }
 });
 
-// Get user's files (temporarily remove auth for debugging)
-app.get('/make-server-54a8f580/user/files', async (c: any) => {
+// Get user's files
+app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
   try {
-    // Temporarily extract userId from request for debugging
-    const authHeader = c.req.header('Authorization');
-    let userId = 'anonymous-user';
-    
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      if (token.includes('demo-token-')) {
-        userId = token.split('-')[2] || 'user123';
-      } else {
-        userId = 'user-' + token.substring(0, 8);
-      }
-    }
+    const userId = c.get('userId');
     console.log('Get user files request from:', userId);
 
     const userFilesKey = `user_files_${userId}`;
@@ -452,22 +419,11 @@ app.delete('/make-server-54a8f580/user/files/:fileId', authMiddleware, async (c:
   }
 });
 
-// User profile endpoint (for compatibility) 
-app.get('/make-server-54a8f580/user/profile', async (c: any) => {
+// User profile endpoint (for compatibility)
+app.get('/make-server-54a8f580/user/profile', authMiddleware, async (c: any) => {
   try {
-    // Temporarily extract userId from request for debugging
-    const authHeader = c.req.header('Authorization');
-    let userId = 'anonymous-user';
-    let token = '';
-    
-    if (authHeader) {
-      token = authHeader.replace('Bearer ', '');
-      if (token.includes('demo-token-')) {
-        userId = token.split('-')[2] || 'user123';
-      } else {
-        userId = 'user-' + token.substring(0, 8);
-      }
-    }
+    const userId = c.get('userId');
+    const token = c.get('token');
 
     // Get user files count for display
     const userFilesKey = `user_files_${userId}`;
