@@ -127,7 +127,15 @@ app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c) => {
 
     // Convert file to base64 for storage (in a real app, you'd use cloud storage)
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Convert to base64 in a more memory-efficient way
+    let binary = '';
+    const len = uint8Array.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const base64 = btoa(binary);
 
     // Create file record
     const fileRecord = {
