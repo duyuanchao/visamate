@@ -3,12 +3,14 @@
 import { useAuth } from '@/components/AuthContext';
 import { Dashboard } from '@/components/Dashboard';
 import { Header } from '@/components/Header';
+import { UploadsModal } from '@/components/UploadsModal';
 import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const [language, setLanguage] = useState<'en' | 'zh'>('en');
+  const [showUploadsModal, setShowUploadsModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -32,8 +34,13 @@ export default function DashboardPage() {
   }
 
   const handleShowUploads = () => {
-    // 处理上传模态框显示
-    console.log('Show uploads modal');
+    setShowUploadsModal(true);
+  };
+
+  const handleCloseUploads = () => {
+    setShowUploadsModal(false);
+    // Trigger a page refresh to reload user data and file statistics
+    window.location.reload();
   };
 
   const handleNavigation = (page: string) => {
@@ -83,6 +90,14 @@ export default function DashboardPage() {
         onAuthAction={handleAuthAction}
       />
       <Dashboard onShowUploads={handleShowUploads} language={language} />
+      
+      {/* Upload Modal */}
+      {showUploadsModal && (
+        <UploadsModal 
+          onClose={handleCloseUploads} 
+          language={language} 
+        />
+      )}
     </div>
   );
 }

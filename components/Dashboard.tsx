@@ -297,6 +297,9 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
           <EB1AToolsSuite language={language} onShowUploads={onShowUploads} />
         )}
 
+        {/* Refresh data when upload modal closes */}
+        <div style={{ display: 'none' }} />
+
 
 
         {/* AI Chat Sidepanel Button */}
