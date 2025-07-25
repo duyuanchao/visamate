@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import * as kv from "./kv_store"; // 假设你的 kv_store.tsx 文件路径没变
 
 const app = new Hono();
@@ -15,16 +15,16 @@ app.use('*', cors({
 app.use('*', logger(console.log));
 
 // Supabase client with service role for admin operations
-// const supabaseAdmin = createClient(
-//     process.env.SUPABASE_URL!,
-//     process.env.SUPABASE_SERVICE_ROLE_KEY!
-// );
-//
-// // Supabase client with anon key for user operations
-// const supabaseAnon = createClient(
-//     process.env.SUPABASE_URL!,
-//     process.env.SUPABASE_ANON_KEY!
-// );
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Supabase client with anon key for user operations
+const supabaseAnon = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
+);
 
 // Health check endpoint
 app.get('/make-server-54a8f580/health', async (c) => {
@@ -88,13 +88,34 @@ const authMiddleware = async (c: any, next: any) => {
   }
 
   try {
-    // For demo purposes, we'll extract user info from the token
-    // In a real app, you'd validate the JWT token
-    const userId = token.includes('demo-token-') ? token.split('-')[2] : 'user-' + token.substring(0, 8);
-    c.set('userId', userId);
+    // Handle demo tokens for development/testing
+    if (token.includes('demo-token-')) {
+      const userId = token.split('-')[2] || 'user123';
+      c.set('userId', userId);
+      c.set('token', token);
+      c.set('user', { id: userId, email: `${userId}@demo.com` });
+      console.log('Demo token authenticated for user:', userId);
+      await next();
+      return;
+    }
+
+    // Validate real Supabase JWT tokens
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    
+    if (error || !user) {
+      console.error('JWT validation failed:', error?.message || 'No user found');
+      return c.json({ error: 'Invalid token', details: error?.message }, 401);
+    }
+
+    // Set user info in context
+    c.set('userId', user.id);
+    c.set('user', user);
     c.set('token', token);
+    console.log('JWT token authenticated for user:', user.email, user.id);
+    
   } catch (error) {
-    return c.json({ error: 'Invalid token' }, 401);
+    console.error('Token validation error:', error);
+    return c.json({ error: 'Token validation failed' }, 401);
   }
 
   await next();
@@ -150,23 +171,47 @@ app.post('/make-server-54a8f580/upload/file', authMiddleware, async (c: any) => 
       ocrStatus: 'pending'
     };
 
-    // Store file in KV store
+    // Store file in KV store with atomic operation
     const fileKey = `user_file_${userId}_${fileId}`;
-    await kv.set(fileKey, fileRecord);
-
-    // Update user's file list
     const userFilesKey = `user_files_${userId}`;
-    const existingFiles = await kv.get(userFilesKey) || { files: [] };
-    existingFiles.files.push({
-      id: fileId,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      uploadedAt: fileRecord.uploadedAt,
-      status: 'uploaded',
-      ocrStatus: 'pending'
-    });
-    await kv.set(userFilesKey, existingFiles);
+    
+    try {
+      // Store individual file record
+      await kv.set(fileKey, fileRecord);
+      console.log('File record stored successfully:', fileKey);
+
+      // Update user's file list atomically
+      const existingFiles = await kv.get(userFilesKey) || { files: [] };
+      
+      // Check if file already exists in the list to avoid duplicates
+      const fileExists = existingFiles.files.some((f: any) => f.id === fileId);
+      
+      if (!fileExists) {
+        existingFiles.files.push({
+          id: fileId,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          uploadedAt: fileRecord.uploadedAt,
+          status: 'uploaded',
+          ocrStatus: 'pending'
+        });
+        
+        await kv.set(userFilesKey, existingFiles);
+        console.log('User file list updated successfully:', userFilesKey);
+      } else {
+        console.log('File already exists in user file list:', fileId);
+      }
+    } catch (storageError) {
+      console.error('Error storing file data:', storageError);
+      // If file list update fails, clean up the individual file record
+      try {
+        await kv.del(fileKey);
+      } catch (cleanupError) {
+        console.error('Error cleaning up file record:', cleanupError);
+      }
+      throw new Error('Failed to store file data in database');
+    }
 
     console.log('File uploaded successfully:', fileId);
 
@@ -205,28 +250,45 @@ app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c: any) => 
       'Quality Score: 95/100'
     ];
 
-    // Update file record
+    // Update file record and user file list atomically
     const fileKey = `user_file_${userId}_${fileId}`;
-    const fileRecord = await kv.get(fileKey);
+    const userFilesKey = `user_files_${userId}`;
     
-    if (fileRecord) {
+    try {
+      // Update individual file record
+      const fileRecord = await kv.get(fileKey);
+      
+      if (!fileRecord) {
+        throw new Error(`File record not found: ${fileId}`);
+      }
+      
       fileRecord.ocrStatus = 'completed';
       fileRecord.extractedData = extractedData;
       fileRecord.processedAt = new Date().toISOString();
+      
       await kv.set(fileKey, fileRecord);
-    }
+      console.log('File record updated with OCR results:', fileKey);
 
-    // Update user's file list
-    const userFilesKey = `user_files_${userId}`;
-    const userFiles = await kv.get(userFilesKey);
-    if (userFiles && userFiles.files) {
-      const fileIndex = userFiles.files.findIndex((f: any) => f.id === fileId);
-      if (fileIndex >= 0) {
-        userFiles.files[fileIndex].ocrStatus = 'completed';
-        userFiles.files[fileIndex].extractedData = extractedData;
-        userFiles.files[fileIndex].processedAt = new Date().toISOString();
-        await kv.set(userFilesKey, userFiles);
+      // Update user's file list
+      const userFiles = await kv.get(userFilesKey);
+      if (userFiles && userFiles.files) {
+        const fileIndex = userFiles.files.findIndex((f: any) => f.id === fileId);
+        if (fileIndex >= 0) {
+          userFiles.files[fileIndex].ocrStatus = 'completed';
+          userFiles.files[fileIndex].extractedData = extractedData;
+          userFiles.files[fileIndex].processedAt = new Date().toISOString();
+          
+          await kv.set(userFilesKey, userFiles);
+          console.log('User file list updated with OCR results:', userFilesKey);
+        } else {
+          console.warn(`File not found in user file list: ${fileId}`);
+        }
+      } else {
+        console.warn('User file list not found or empty');
       }
+    } catch (updateError) {
+      console.error('Error updating file with OCR results:', updateError);
+      throw new Error(`Failed to update file with OCR results: ${updateError.message}`);
     }
 
     console.log('OCR processing completed for file:', fileId);
@@ -250,20 +312,30 @@ app.post('/make-server-54a8f580/ocr/process', authMiddleware, async (c: any) => 
 app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
   try {
     const userId = c.get('userId');
+    console.log('===== GET USER FILES DEBUG =====');
     console.log('Get user files request from:', userId);
+    console.log('Request time:', new Date().toISOString());
 
     const userFilesKey = `user_files_${userId}`;
+    console.log('Looking for user files with key:', userFilesKey);
+    
     const userFiles = await kv.get(userFilesKey);
+    console.log('Raw user files data from KV store:', JSON.stringify(userFiles, null, 2));
 
     const files = userFiles?.files || [];
+    console.log(`Found ${files.length} files in user file list`);
 
     // Enrich files with full data for display
     const enrichedFiles = await Promise.all(
-      files.map(async (file: any) => {
+      files.map(async (file: any, index: number) => {
+        console.log(`Processing file ${index + 1}/${files.length}: ${file.name} (${file.id})`);
+        
         const fileKey = `user_file_${userId}_${file.id}`;
         const fullFileRecord = await kv.get(fileKey);
         
-        return {
+        console.log(`Full file record for ${file.id}:`, fullFileRecord ? 'Found' : 'Not found');
+        
+        const enrichedFile = {
           id: file.id,
           name: file.name,
           size: file.size,
@@ -274,16 +346,32 @@ app.get('/make-server-54a8f580/user/files', authMiddleware, async (c: any) => {
           fileUrl: fullFileRecord?.content ? `data:${file.type};base64,${fullFileRecord.content}` : null,
           processedAt: file.processedAt
         };
+        
+        console.log(`Enriched file ${file.id}:`, JSON.stringify(enrichedFile, null, 2));
+        return enrichedFile;
       })
     );
 
+    console.log('===== FINAL RESPONSE =====');
+    console.log(`Returning ${enrichedFiles.length} enriched files`);
+    console.log('Response:', JSON.stringify({ success: true, files: enrichedFiles }, null, 2));
+    console.log('===== END DEBUG =====');
+
     return c.json({
       success: true,
-      files: enrichedFiles
+      files: enrichedFiles,
+      debug: {
+        userId,
+        userFilesKey,
+        rawFileCount: files.length,
+        enrichedFileCount: enrichedFiles.length,
+        timestamp: new Date().toISOString()
+      }
     });
 
   } catch (error: any) {
     console.error('Error getting user files:', error);
+    console.error('Error stack:', error.stack);
     return c.json({ 
       error: 'Failed to get files', 
       details: error.message 

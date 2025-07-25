@@ -108,6 +108,44 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
     return () => clearTimeout(timer);
   }, [user]); // Only depend on user, check session validity inside
 
+  // Listen for file upload events to refresh data
+  React.useEffect(() => {
+    const handleFileUpload = (event: CustomEvent) => {
+      console.log('File upload event received:', event.detail);
+      
+      // Refresh user data and dashboard components
+      if (hasValidSession()) {
+        refreshUser(); // This will trigger updates to file counts and RFE risk
+        
+        // Optionally reload timeline and checklist data as well
+        const reloadDashboardData = async () => {
+          try {
+            const [timelineData, checklistData] = await Promise.all([
+              api.get('/make-server-54a8f580/user/timeline'),
+              api.get('/make-server-54a8f580/user/checklist')
+            ]);
+            
+            setTimeline(timelineData.timeline || []);
+            setChecklist(checklistData.checklist || []);
+            
+            console.log('Dashboard data refreshed after file upload');
+          } catch (error) {
+            console.error('Error refreshing dashboard data after file upload:', error);
+          }
+        };
+        
+        reloadDashboardData();
+      }
+    };
+
+    // Add event listener for file upload events
+    window.addEventListener('fileUploaded', handleFileUpload as EventListener);
+    
+    return () => {
+      window.removeEventListener('fileUploaded', handleFileUpload as EventListener);
+    };
+  }, [refreshUser, api, hasValidSession]);
+
   const handleChecklistItemUpdate = async (itemId: string, updates: any) => {
     if (!hasValidSession()) {
       console.error('No valid session for checklist update');

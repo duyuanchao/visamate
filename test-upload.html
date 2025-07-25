@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>文件上传功能调试</h1>
+    
+    <div class="test-section">
+        <h2>1. 服务器健康检查</h2>
+        <button onclick="testHealth()">检查服务器状态</button>
+        <div id="health-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 设置用户Token</h2>
+        <input type="text" id="userToken" placeholder="输入用户token" value="demo-token-user123" style="width: 300px;">
+        <button onclick="setUserToken()">设置Token到localStorage</button>
+        <div id="token-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 获取用户文件列表</h2>
+        <button onclick="getUserFiles()">获取文件列表</button>
+        <div id="files-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 文件上传测试</h2>
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+        <button onclick="uploadFile()">上传文件</button>
+        <div id="upload-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. 获取用户档案</h2>
+        <button onclick="getUserProfile()">获取用户档案</button>
+        <div id="profile-result" class="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://eybfrryonupkvjhzfwaw.supabase.co';
+        const API_BASE = `${SUPABASE_URL}/functions/v1/make-server-54a8f580`;
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`, {
+                    headers: {
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YmZycnlvbnVwa3ZqaHpmd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNzg0OTQsImV4cCI6MjA2ODY1NDQ5NH0.Pz9bxwzJG0LP5yE5H4AEW6WFiCXuf0SlRg0jwS2Cmaw',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('health-result', data);
+                } else {
+                    const errorText = await response.text();
+                    showResult('health-result', `错误 ${response.status}: ${errorText}`, true);
+                }
+            } catch (error) {
+                showResult('health-result', `请求失败: ${error.message}`, true);
+            }
+        }
+
+        function setUserToken() {
+            const token = document.getElementById('userToken').value;
+            localStorage.setItem('visaMate_accessToken', token);
+            showResult('token-result', `Token已设置: ${token}`);
+        }
+
+        async function getUserFiles() {
+            try {
+                const token = localStorage.getItem('visaMate_accessToken') || 'demo-token-user123';
+                const response = await fetch(`${API_BASE}/user/files`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('files-result', data);
+                } else {
+                    const errorText = await response.text();
+                    showResult('files-result', `错误 ${response.status}: ${errorText}`, true);
+                }
+            } catch (error) {
+                showResult('files-result', `请求失败: ${error.message}`, true);
+            }
+        }
+
+        async function uploadFile() {
+            try {
+                const fileInput = document.getElementById('fileInput');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showResult('upload-result', '请选择一个文件', true);
+                    return;
+                }
+
+                const token = localStorage.getItem('visaMate_accessToken') || 'demo-token-user123';
+                const fileId = 'test-' + Date.now();
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('fileId', fileId);
+                formData.append('userId', 'user123');
+
+                showResult('upload-result', '正在上传文件...');
+
+                const response = await fetch(`${API_BASE}/upload/file`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('upload-result', `上传成功!\n${JSON.stringify(data, null, 2)}`);
+                    
+                    // 自动触发 OCR 处理
+                    if (data.fileUrl) {
+                        setTimeout(() => processOCR(fileId, data.fileUrl), 1000);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    showResult('upload-result', `上传失败 ${response.status}: ${errorText}`, true);
+                }
+            } catch (error) {
+                showResult('upload-result', `上传失败: ${error.message}`, true);
+            }
+        }
+
+        async function processOCR(fileId, fileUrl) {
+            try {
+                const token = localStorage.getItem('visaMate_accessToken') || 'demo-token-user123';
+                
+                const response = await fetch(`${API_BASE}/ocr/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fileId: fileId,
+                        fileUrl: fileUrl
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('upload-result', 
+                        `上传和OCR处理完成!\nOCR结果: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    const errorText = await response.text();
+                    showResult('upload-result', 
+                        `OCR处理失败 ${response.status}: ${errorText}`, true);
+                }
+            } catch (error) {
+                showResult('upload-result', `OCR处理失败: ${error.message}`, true);
+            }
+        }
+
+        async function getUserProfile() {
+            try {
+                const token = localStorage.getItem('visaMate_accessToken') || 'demo-token-user123';
+                const response = await fetch(`${API_BASE}/user/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('profile-result', data);
+                } else {
+                    const errorText = await response.text();
+                    showResult('profile-result', `错误 ${response.status}: ${errorText}`, true);
+                }
+            } catch (error) {
+                showResult('profile-result', `请求失败: ${error.message}`, true);
+            }
+        }
+
+        // 页面加载时自动设置token
+        window.onload = function() {
+            setUserToken();
+        };
+    </script>
+</body>
+</html>
