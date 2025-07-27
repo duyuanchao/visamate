@@ -68,16 +68,35 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         setError(null);
         console.log('Loading user data for user:', user?.email);
         
-        // Test server connectivity first (with timeout)
+        // Test server connectivity first (with extended timeout and retry)
         try {
           console.log('Testing server health...');
-          const healthPromise = api.get('/make-server-54a8f580/health', false);
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Health check timeout')), 3000)
-          );
           
-          await Promise.race([healthPromise, timeoutPromise]);
-          console.log('Server health check passed');
+          let healthCheckPassed = false;
+          const maxRetries = 3;
+          
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              const healthPromise = api.get('/make-server-54a8f580/health', false);
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Health check timeout')), 10000) // 增加到10秒
+              );
+              
+              await Promise.race([healthPromise, timeoutPromise]);
+              console.log('Server health check passed');
+              healthCheckPassed = true;
+              break;
+            } catch (healthError) {
+              console.log(`Health check attempt ${attempt}/${maxRetries} failed:`, healthError);
+              if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒后重试
+              }
+            }
+          }
+          
+          if (!healthCheckPassed) {
+            throw new Error('Server health check failed after multiple attempts');
+          }
         } catch (healthError) {
           console.error('Server health check failed:', healthError);
           // 不阻塞用户界面，继续使用基础功能
