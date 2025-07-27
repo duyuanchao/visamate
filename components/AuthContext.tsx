@@ -130,6 +130,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           console.log('Found existing session for:', session.user.email);
+          
+          // Store the access token for Dashboard session validation
+          if (session.access_token) {
+            localStorage.setItem('visaMate_accessToken', session.access_token);
+            console.log('✅ Access token stored from initial session');
+          }
+          
           await loadUserProfile(session.user);
         } else {
           console.log('No existing session found');
@@ -148,9 +155,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        // Store the access token for Dashboard session validation
+        if (session.access_token) {
+          localStorage.setItem('visaMate_accessToken', session.access_token);
+          console.log('✅ Access token stored from auth state change');
+        }
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        // Clear the stored token on sign out
+        localStorage.removeItem('visaMate_accessToken');
+        console.log('🗑️ Access token cleared on sign out');
       }
       
       setLoading(false);
@@ -190,6 +205,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user && data.session) {
         console.log('Signin successful for:', data.user.email);
+        
+        // Store the access token for Dashboard session validation
+        localStorage.setItem('visaMate_accessToken', data.session.access_token);
+        console.log('✅ Access token stored for session validation');
+        
         // User profile will be loaded automatically by the auth state listener
         return { success: true };
       } else {

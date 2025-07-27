@@ -426,19 +426,38 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
             uploadedAt: new Date().toISOString()
           };
 
-        // 调用API保存文件记录
+        // 调用API保存文件记录（优雅处理失败）
         console.log('📤 Sending file record to API:', fileRecord);
         try {
           const apiResponse = await api.post('/make-server-54a8f580/user/files', fileRecord);
           console.log('✅ API response:', apiResponse);
         } catch (apiError) {
-          console.error('❌ Failed to save file record to database:', apiError);
-          console.error('📋 Error details:', {
-            error: apiError,
-            endpoint: '/make-server-54a8f580/user/files',
-            data: fileRecord
+          console.warn('⚠️ API call failed, but file upload was successful. Using local storage only.');
+          console.log('📋 API error details:', {
+            error: apiError?.message || 'Unknown error',
+            endpoint: '/make-server-54a8f580/user/files'
           });
-          // 即使数据库保存失败，文件仍然上传成功了
+          
+          // 即使API保存失败，文件仍然上传成功了
+          // 将文件信息保存到localStorage作为备用
+          try {
+            const userFilesKey = `visamate_files_${user?.userId}`;
+            const existingFiles = JSON.parse(localStorage.getItem(userFilesKey) || '[]');
+            existingFiles.push({
+              id: tempId,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              category: activeTab,
+              uploadDate: new Date().toISOString(),
+              fileUrl: fileUrl,
+              processed: true
+            });
+            localStorage.setItem(userFilesKey, JSON.stringify(existingFiles));
+            console.log('💾 File saved to localStorage as backup');
+          } catch (storageError) {
+            console.error('Failed to save to localStorage:', storageError);
+          }
         }
 
         console.log(`✅ Successfully uploaded: ${file.name}`);
