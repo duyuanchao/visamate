@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear VisaMate Storage</title>
+</head>
+<body>
+    <h1>Clear VisaMate Local Storage</h1>
+    <button onclick="clearStorage()">Clear Storage</button>
+    <div id="result"></div>
+    
+    <script>
+        function clearStorage() {
+            localStorage.removeItem('visaMate_accessToken');
+            localStorage.removeItem('visaMate_refreshToken');
+            document.getElementById('result').innerHTML = '<p style="color: green;">Storage cleared! You can now refresh your main app.</p>';
+        }
+        
+        // Show current tokens (if any)
+        const accessToken = localStorage.getItem('visaMate_accessToken');
+        const refreshToken = localStorage.getItem('visaMate_refreshToken');
+        
+        if (accessToken || refreshToken) {
+            document.getElementById('result').innerHTML = '<p style="color: orange;">Found existing tokens. Click button to clear them.</p>';
+        } else {
+            document.getElementById('result').innerHTML = '<p style="color: blue;">No tokens found in storage.</p>';
+        }
+    </script>
+</body>
+</html>

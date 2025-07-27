@@ -31,6 +31,9 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
   
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
 
+  // 调试信息
+  console.log('Dashboard render - user:', !!user, 'loading:', loading, 'error:', error);
+
   // Check if we have a valid session
   const hasValidSession = () => {
     const token = localStorage.getItem('visaMate_accessToken');
@@ -44,9 +47,19 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
       console.log('User:', !!user);
       console.log('Valid session:', hasValidSession());
       
-      if (!hasValidSession()) {
-        console.log('No valid session, skipping data load');
+      // 如果没有用户，直接设置 loading 为 false 并返回
+      if (!user) {
+        console.log('No user available, setting loading to false');
         setLoading(false);
+        return;
+      }
+
+      // 如果有用户但没有有效会话，也设置 loading 为 false（使用基础功能）
+      if (!hasValidSession()) {
+        console.log('No valid session, using basic mode');
+        setLoading(false);
+        setTimeline([]);
+        setChecklist([]);
         return;
       }
       
@@ -55,14 +68,23 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         setError(null);
         console.log('Loading user data for user:', user?.email);
         
-        // Test server connectivity first
+        // Test server connectivity first (with timeout)
         try {
           console.log('Testing server health...');
-          await api.get('/make-server-54a8f580/health', false); // false = no auth required
+          const healthPromise = api.get('/make-server-54a8f580/health', false);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Health check timeout')), 3000)
+          );
+          
+          await Promise.race([healthPromise, timeoutPromise]);
           console.log('Server health check passed');
         } catch (healthError) {
           console.error('Server health check failed:', healthError);
-          setError(getText('Unable to connect to server. Please try again later.', '无法连接到服务器。请稍后再试。'));
+          // 不阻塞用户界面，继续使用基础功能
+          console.log('Continuing with basic functionality');
+          setTimeline([]);
+          setChecklist([]);
+          setLoading(false);
           return;
         }
         
@@ -329,6 +351,8 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
             </div>
           </div>
         </div>
+
+
 
         {/* EB1A Tools Suite - Show when EB1A is selected */}
         {(user?.visaCategory === 'EB-1A' || true) && (

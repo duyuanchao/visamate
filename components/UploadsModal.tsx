@@ -42,20 +42,17 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
   
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
 
-  // Load existing files on component mount
-  React.useEffect(() => {
-    loadExistingFiles();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadExistingFiles = async (forceReload = false) => {
+  const loadExistingFiles = React.useCallback(async (forceReload = false, retryCount = 0) => {
     if (!user) {
       console.log('No user available, skipping file load');
       return;
     }
     
+    const maxRetries = 3;
+    
     try {
       setLoading(true);
-      console.log('Loading existing files for user:', user.email, forceReload ? '(force reload)' : '');
+      console.log('Loading existing files for user:', user.email, forceReload ? '(force reload)' : '', retryCount > 0 ? `(retry ${retryCount})` : '');
       
       // Add cache busting parameter to force reload
       const cacheBuster = forceReload ? `?t=${Date.now()}` : '';
@@ -63,19 +60,36 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
       console.log('Existing files response:', response);
       
       if (response && response.success && response.files) {
-        const files = response.files.map((file: any) => ({
+        const files = response.files.map((file: any) => {
+          // Handle files that might have errors or missing data
+          const mappedFile = {
           id: file.id,
           name: file.name,
           size: file.size,
           type: file.type,
-          status: 'completed' as const,
+            status: file.error ? 'error' as const : 'completed' as const,
           progress: 100,
           ocrStatus: file.ocrStatus || 'completed',
           extractedData: file.extractedData || [],
           fileUrl: file.fileUrl,
-        }));
+            error: file.error || undefined,
+            hasFullRecord: file.hasFullRecord !== false, // Default to true if not specified
+            repaired: file.repaired || false
+          };
+          
+          // Log any problematic files
+          if (file.error || !file.hasFullRecord) {
+            console.warn(`File ${file.id} has issues:`, {
+              error: file.error,
+              hasFullRecord: file.hasFullRecord,
+              repaired: file.repaired
+            });
+          }
+          
+          return mappedFile;
+        });
         
-        console.log(`Loaded ${files.length} existing files:`, files);
+        console.log(`Loaded ${files.length} existing files (including ${files.filter((f: any) => f.error).length} with errors):`, files);
         setUploadedFiles(files);
       } else if (response && !response.success) {
         console.error('Failed to load files:', response.error);
@@ -86,16 +100,42 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
       }
     } catch (error) {
       console.error('Error loading existing files:', error);
-      setUploadedFiles([]);
+      
+      // Retry logic for failed requests
+      if (retryCount < maxRetries) {
+        console.log(`Retrying file load in ${(retryCount + 1) * 1000}ms...`);
+        setTimeout(() => {
+          loadExistingFiles(forceReload, retryCount + 1);
+        }, (retryCount + 1) * 1000);
+        return;
+      }
+      
+      // After all retries failed, show error but don't clear files immediately
+      console.error('All retry attempts failed, showing error state');
       
       // Show user-friendly error message
       if (error instanceof Error) {
         console.error('File loading error details:', error.message);
       }
+      
+      // Only clear files if this was a forced reload, otherwise preserve state
+      if (forceReload) {
+        console.log('Force reload failed, clearing file list');
+        setUploadedFiles([]);
+      } else {
+        console.log('Initial load failed, but keeping any existing files');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, api]); // Dependencies: user and api
+
+  // Load existing files on component mount and when user changes
+  React.useEffect(() => {
+    if (user) {
+      loadExistingFiles();
+    }
+  }, [user, loadExistingFiles]); // Re-load when user changes
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -427,6 +467,18 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
             </p>
           </div>
           
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadExistingFiles(true)}
+              className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              title={getText('Refresh file list', '刷新文件列表')}
+              disabled={loading}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          
           <button
             onClick={onClose}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
@@ -434,6 +486,7 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
+          </div>
         </div>
 
         {/* Upload Area */}
