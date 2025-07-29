@@ -42,37 +42,100 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
   
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
 
-  // Load existing files on component mount
-  React.useEffect(() => {
-    loadExistingFiles();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadExistingFiles = async () => {
-    if (!user) return;
+  const loadExistingFiles = React.useCallback(async (forceReload = false, retryCount = 0) => {
+    if (!user) {
+      console.log('No user available, skipping file load');
+      return;
+    }
+    
+    const maxRetries = 3;
     
     try {
       setLoading(true);
-      const response = await api.get('/make-server-54a8f580/user/files');
-      if (response.files) {
-        const files = response.files.map((file: any) => ({
+      console.log('Loading existing files for user:', user.email, forceReload ? '(force reload)' : '', retryCount > 0 ? `(retry ${retryCount})` : '');
+      
+      // Add cache busting parameter to force reload
+      const cacheBuster = forceReload ? `?t=${Date.now()}` : '';
+      const response = await api.get(`/make-server-54a8f580/user/files${cacheBuster}`);
+      console.log('Existing files response:', response);
+      
+      if (response && response.success && response.files) {
+        const files = response.files.map((file: any) => {
+          // Handle files that might have errors or missing data
+          const mappedFile = {
           id: file.id,
           name: file.name,
           size: file.size,
           type: file.type,
-          status: 'completed' as const,
+            status: file.error ? 'error' as const : 'completed' as const,
           progress: 100,
           ocrStatus: file.ocrStatus || 'completed',
           extractedData: file.extractedData || [],
           fileUrl: file.fileUrl,
-        }));
+            error: file.error || undefined,
+            hasFullRecord: file.hasFullRecord !== false, // Default to true if not specified
+            repaired: file.repaired || false
+          };
+          
+          // Log any problematic files
+          if (file.error || !file.hasFullRecord) {
+            console.warn(`File ${file.id} has issues:`, {
+              error: file.error,
+              hasFullRecord: file.hasFullRecord,
+              repaired: file.repaired
+            });
+          }
+          
+          return mappedFile;
+        });
+        
+        console.log(`Loaded ${files.length} existing files (including ${files.filter((f: any) => f.error).length} with errors):`, files);
         setUploadedFiles(files);
+      } else if (response && !response.success) {
+        console.error('Failed to load files:', response.error);
+        setUploadedFiles([]);
+      } else {
+        console.log('No files found or unexpected response format');
+        setUploadedFiles([]);
       }
     } catch (error) {
       console.error('Error loading existing files:', error);
+      
+      // Retry logic for failed requests
+      if (retryCount < maxRetries) {
+        console.log(`Retrying file load in ${(retryCount + 1) * 1000}ms...`);
+        setTimeout(() => {
+          loadExistingFiles(forceReload, retryCount + 1);
+        }, (retryCount + 1) * 1000);
+        return;
+      }
+      
+      // After all retries failed, show error but don't clear files immediately
+      console.error('All retry attempts failed, showing error state');
+      
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        console.error('File loading error details:', error.message);
+      }
+      
+      // Only clear files if this was a forced reload, otherwise preserve state
+      if (forceReload) {
+        console.log('Force reload failed, clearing file list');
+        setUploadedFiles([]);
+      } else {
+        console.log('Initial load failed, but keeping any existing files');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, api]); // Dependencies: user and api
+
+  // Load existing files on component mount and when user changes
+  React.useEffect(() => {
+    if (user) {
+      loadExistingFiles();
+    }
+  }, [user, loadExistingFiles]); // Re-load when user changes
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -225,12 +288,17 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
 
   const processFileOCR = async (fileId: string, fileUrl: string) => {
     try {
+      console.log('Starting OCR processing for file:', fileId);
+      
       const response = await api.post('/make-server-54a8f580/ocr/process', {
         fileId,
         fileUrl,
       });
 
+      console.log('OCR processing response:', response);
+
       if (response.success) {
+        // Update local state first
         setUploadedFiles(prev =>
           prev.map(f => {
             if (f.id === fileId) {
@@ -249,18 +317,50 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           })
         );
 
-        // Save file record to user's profile
-        await api.post('/make-server-54a8f580/user/files', {
-          fileId,
-          name: uploadedFiles.find(f => f.id === fileId)?.name,
-          fileUrl,
-          extractedData: response.extractedData,
-        });
+        // Save file record to user's profile with retry logic
+        const fileName = uploadedFiles.find(f => f.id === fileId)?.name || 'unknown-file';
+        let saveSuccess = false;
+        let retryCount = 0;
+        const maxRetries = 3;
 
-        // Notify dashboard to refresh user data
-        window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId } }));
+        while (!saveSuccess && retryCount < maxRetries) {
+          try {
+            console.log(`Attempting to save file record (attempt ${retryCount + 1}):`, { fileId, fileName });
+            
+            const saveResponse = await api.post('/make-server-54a8f580/user/files', {
+              fileId,
+              name: fileName,
+              fileUrl,
+              extractedData: response.extractedData,
+            });
+
+            console.log('File save response:', saveResponse);
+            saveSuccess = true;
+            
+                         // Notify dashboard to refresh user data
+             window.dispatchEvent(new CustomEvent('fileUploaded', { detail: { fileId, fileName } }));
+             
+             // Force refresh the file list immediately
+             console.log('File saved successfully, refreshing file list...');
+             setTimeout(() => {
+               loadExistingFiles(true);
+             }, 500);
+             
+           } catch (saveError) {
+            retryCount++;
+            console.error(`File save attempt ${retryCount} failed:`, saveError);
+            
+            if (retryCount >= maxRetries) {
+              console.error('Failed to save file record after all retries');
+              throw new Error(`Failed to save file record: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`);
+            }
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          }
+        }
       } else {
-        throw new Error('OCR processing failed');
+        throw new Error(`OCR processing failed: ${response.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('OCR processing error:', error);
@@ -276,6 +376,9 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           return f;
         })
       );
+      
+      // Re-throw the error so it can be handled by the upload function
+      throw error;
     }
   };
 
@@ -364,6 +467,18 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
             </p>
           </div>
           
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadExistingFiles(true)}
+              className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              title={getText('Refresh file list', '刷新文件列表')}
+              disabled={loading}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          
           <button
             onClick={onClose}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
@@ -371,10 +486,23 @@ export function UploadsModal({ onClose, language }: UploadsModalProps) {
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
+          </div>
         </div>
 
         {/* Upload Area */}
         <div className="p-6 border-b border-border">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">
+              {getText('File Upload', '文件上传')}
+            </h3>
+            <button
+              onClick={() => loadExistingFiles(true)}
+              className="text-sm bg-secondary hover:bg-secondary/80 text-secondary-foreground px-3 py-1 rounded-md transition-colors"
+            >
+              {getText('Force Refresh Files', '强制刷新文件')}
+            </button>
+          </div>
+          
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer hover:bg-neutral/50 ${
               isDragging 

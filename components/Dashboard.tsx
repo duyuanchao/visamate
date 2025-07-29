@@ -31,6 +31,9 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
   
   const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
 
+  // 调试信息
+  console.log('Dashboard render - user:', !!user, 'loading:', loading, 'error:', error);
+
   // Check if we have a valid session
   const hasValidSession = () => {
     const token = localStorage.getItem('visaMate_accessToken');
@@ -44,9 +47,19 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
       console.log('User:', !!user);
       console.log('Valid session:', hasValidSession());
       
-      if (!hasValidSession()) {
-        console.log('No valid session, skipping data load');
+      // 如果没有用户，直接设置 loading 为 false 并返回
+      if (!user) {
+        console.log('No user available, setting loading to false');
         setLoading(false);
+        return;
+      }
+
+      // 如果有用户但没有有效会话，也设置 loading 为 false（使用基础功能）
+      if (!hasValidSession()) {
+        console.log('No valid session, using basic mode');
+        setLoading(false);
+        setTimeline([]);
+        setChecklist([]);
         return;
       }
       
@@ -55,14 +68,42 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         setError(null);
         console.log('Loading user data for user:', user?.email);
         
-        // Test server connectivity first
+        // Test server connectivity first (with extended timeout and retry)
         try {
           console.log('Testing server health...');
-          await api.get('/make-server-54a8f580/health', false); // false = no auth required
-          console.log('Server health check passed');
+          
+          let healthCheckPassed = false;
+          const maxRetries = 3;
+          
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              const healthPromise = api.get('/make-server-54a8f580/health', false);
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Health check timeout')), 10000) // 增加到10秒
+              );
+              
+              await Promise.race([healthPromise, timeoutPromise]);
+              console.log('Server health check passed');
+              healthCheckPassed = true;
+              break;
+            } catch (healthError) {
+              console.log(`Health check attempt ${attempt}/${maxRetries} failed:`, healthError);
+              if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒后重试
+              }
+            }
+          }
+          
+          if (!healthCheckPassed) {
+            throw new Error('Server health check failed after multiple attempts');
+          }
         } catch (healthError) {
           console.error('Server health check failed:', healthError);
-          setError(getText('Unable to connect to server. Please try again later.', '无法连接到服务器。请稍后再试。'));
+          // 不阻塞用户界面，继续使用基础功能
+          console.log('Continuing with basic functionality');
+          setTimeline([]);
+          setChecklist([]);
+          setLoading(false);
           return;
         }
         
@@ -107,6 +148,44 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
     const timer = setTimeout(loadUserData, 100);
     return () => clearTimeout(timer);
   }, [user]); // Only depend on user, check session validity inside
+
+  // Listen for file upload events to refresh data
+  React.useEffect(() => {
+    const handleFileUpload = (event: CustomEvent) => {
+      console.log('File upload event received:', event.detail);
+      
+      // Refresh user data and dashboard components
+      if (hasValidSession()) {
+        refreshUser(); // This will trigger updates to file counts and RFE risk
+        
+        // Optionally reload timeline and checklist data as well
+        const reloadDashboardData = async () => {
+          try {
+            const [timelineData, checklistData] = await Promise.all([
+              api.get('/make-server-54a8f580/user/timeline'),
+              api.get('/make-server-54a8f580/user/checklist')
+            ]);
+            
+            setTimeline(timelineData.timeline || []);
+            setChecklist(checklistData.checklist || []);
+            
+            console.log('Dashboard data refreshed after file upload');
+          } catch (error) {
+            console.error('Error refreshing dashboard data after file upload:', error);
+          }
+        };
+        
+        reloadDashboardData();
+      }
+    };
+
+    // Add event listener for file upload events
+    window.addEventListener('fileUploaded', handleFileUpload as EventListener);
+    
+    return () => {
+      window.removeEventListener('fileUploaded', handleFileUpload as EventListener);
+    };
+  }, [refreshUser, api, hasValidSession]);
 
   const handleChecklistItemUpdate = async (itemId: string, updates: any) => {
     if (!hasValidSession()) {
@@ -291,6 +370,8 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
             </div>
           </div>
         </div>
+
+
 
         {/* EB1A Tools Suite - Show when EB1A is selected */}
         {(user?.visaCategory === 'EB-1A' || true) && (

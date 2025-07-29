@@ -300,5 +300,11 @@ export function useApi() {
         body: JSON.stringify(data),
       }, requireAuth);
     },
+    
+    delete: async (url: string, requireAuth: boolean = true) => {
+      return makeRequest(url, {
+        method: 'DELETE',
+      }, requireAuth);
+    },
   };
 }
