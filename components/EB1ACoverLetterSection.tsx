@@ -434,7 +434,7 @@ export function EB1ACoverLetterSection({ language, onShowUploads }: EB1ACoverLet
         } catch (apiError) {
           console.warn('⚠️ API call failed, but file upload was successful. Using local storage only.');
           console.log('📋 API error details:', {
-            error: apiError?.message || 'Unknown error',
+            error: apiError instanceof Error ? apiError.message : 'Unknown error',
             endpoint: '/make-server-54a8f580/user/files'
           });
           
