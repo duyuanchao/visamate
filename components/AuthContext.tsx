@@ -33,6 +33,47 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// 数据持久化帮助函数
+const USER_DATA_CACHE_KEY = 'visaMate_userData';
+const USER_DATA_CACHE_EXPIRY = 10 * 60 * 1000; // 10分钟缓存
+
+const getCachedUserData = (): User | null => {
+  try {
+    const cached = localStorage.getItem(USER_DATA_CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < USER_DATA_CACHE_EXPIRY) {
+        console.log('✅ Loaded user data from cache');
+        return data;
+      }
+    }
+  } catch (error) {
+    console.error('Error reading cached user data:', error);
+  }
+  return null;
+};
+
+const setCachedUserData = (userData: User) => {
+  try {
+    localStorage.setItem(USER_DATA_CACHE_KEY, JSON.stringify({
+      data: userData,
+      timestamp: Date.now()
+    }));
+    console.log('✅ Cached user data');
+  } catch (error) {
+    console.error('Error caching user data:', error);
+  }
+};
+
+const clearCachedUserData = () => {
+  try {
+    localStorage.removeItem(USER_DATA_CACHE_KEY);
+    console.log('🗑️ Cleared cached user data');
+  } catch (error) {
+    console.error('Error clearing cached user data:', error);
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,6 +113,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserProfile = async (authUser: any) => {
     console.log('Loading user profile for:', authUser.email);
     
+    // 检查缓存的用户数据
+    const cachedUserData = getCachedUserData();
+    if (cachedUserData && cachedUserData.userId === authUser.id) {
+      setUser(cachedUserData);
+      setLoading(false);
+      return;
+    }
+    
     // 创建基础用户档案（始终可用）
     const basicUser: User = {
       userId: authUser.id,
@@ -87,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 先设置基础用户资料，确保应用能正常工作
     console.log('✅ Setting basic user profile');
     setUser(basicUser);
+    setCachedUserData(basicUser);
     
     // 然后尝试从 API 获取完整档案（可选且有超时）
     try {
@@ -102,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profileData?.user) {
         console.log('✅ Loaded enhanced profile from API');
         setUser(profileData.user);
+        setCachedUserData(profileData.user);
       } else {
         console.log('ℹ️ Using basic profile (API returned no user data)');
       }
@@ -163,9 +214,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        // Clear the stored token on sign out
+        // Clear the stored token and cached data on sign out
         localStorage.removeItem('visaMate_accessToken');
-        console.log('🗑️ Access token cleared on sign out');
+        clearCachedUserData();
+        console.log('🗑️ Access token and cached data cleared on sign out');
       }
       
       setLoading(false);
