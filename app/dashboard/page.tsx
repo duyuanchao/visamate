@@ -4,11 +4,12 @@ import { useAuth } from '@/components/AuthContext';
 import { Dashboard } from '@/components/Dashboard';
 import { Header } from '@/components/Header';
 import { UploadsModal } from '@/components/UploadsModal';
-import { redirect } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { redirect, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function DashboardPage() {
   const { user, loading, refreshUser } = useAuth();
+  const router = useRouter();
   const [language, setLanguage] = useState<'en' | 'zh'>('en');
   const [showUploadsModal, setShowUploadsModal] = useState(false);
 
@@ -33,11 +34,11 @@ export default function DashboardPage() {
     return null; // Will redirect
   }
 
-  const handleShowUploads = () => {
+  const handleShowUploads = useCallback(() => {
     setShowUploadsModal(true);
-  };
+  }, []);
 
-  const handleCloseUploads = async () => {
+  const handleCloseUploads = useCallback(async () => {
     setShowUploadsModal(false);
     
     // Refresh data without full page reload
@@ -51,44 +52,44 @@ export default function DashboardPage() {
       // Fallback to page reload if refresh fails
       window.location.reload();
     }
-  };
+  }, [refreshUser]);
 
-  const handleNavigation = (page: string) => {
-    // Handle navigation between pages
+  const handleNavigation = useCallback((page: string) => {
+    // Handle navigation between pages using Next.js router
     switch (page) {
       case 'home':
-        window.location.href = '/';
+        router.push('/');
         break;
       case 'how-it-works':
-        window.location.href = '/how-it-works';
+        router.push('/how-it-works');
         break;
       case 'pricing':
-        window.location.href = '/pricing';
+        router.push('/pricing');
         break;
       case 'dashboard':
-        window.location.href = '/dashboard';
+        // Already on dashboard, no need to navigate
         break;
       case 'doc-builder':
-        window.location.href = '/doc-builder';
+        router.push('/doc-builder');
         break;
       case 'rfe-report':
-        window.location.href = '/rfe-report';
+        router.push('/rfe-report');
         break;
       case 'settings':
-        window.location.href = '/settings';
+        router.push('/settings');
         break;
       default:
         console.log('Navigation to:', page);
     }
-  };
+  }, [router]);
 
-  const handleAuthAction = (action: 'signin' | 'signup') => {
+  const handleAuthAction = useCallback((action: 'signin' | 'signup') => {
     if (action === 'signin') {
-      window.location.href = '/auth/signin';
+      router.push('/auth/signin');
     } else {
-      window.location.href = '/auth/signup';
+      router.push('/auth/signup');
     }
-  };
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background">

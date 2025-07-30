@@ -12,15 +12,41 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import { useAuth, useApi } from './AuthContext';
-import { VisaCategorySelector } from './VisaCategorySelector';
-import { EB1AToolsSuite } from './EB1AToolsSuite';
+
+// 懒加载大型组件
+const VisaCategorySelector = React.lazy(() => import('./VisaCategorySelector').then(module => ({ default: module.VisaCategorySelector })));
+const EB1AToolsSuite = React.lazy(() => import('./EB1AToolsSuite').then(module => ({ default: module.EB1AToolsSuite })));
 
 interface DashboardProps {
   onShowUploads: () => void;
   language: 'en' | 'zh';
 }
 
-export function Dashboard({ onShowUploads, language }: DashboardProps) {
+// API缓存机制
+const API_CACHE = new Map<string, { data: any; timestamp: number; expiry: number }>();
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5分钟缓存
+
+const getCachedData = (key: string) => {
+  const cached = API_CACHE.get(key);
+  if (cached && Date.now() < cached.timestamp + cached.expiry) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any, expiry = CACHE_EXPIRY) => {
+  API_CACHE.set(key, {
+    data,
+    timestamp: Date.now(),
+    expiry
+  });
+};
+
+// 健康检查缓存（更长的缓存时间）
+let healthCheckCache: { status: boolean; timestamp: number } | null = null;
+const HEALTH_CHECK_CACHE_EXPIRY = 2 * 60 * 1000; // 2分钟
+
+const Dashboard = React.memo(function Dashboard({ onShowUploads, language }: DashboardProps) {
   const { user, refreshUser } = useAuth();
   const api = useApi();
   const [showChat, setShowChat] = React.useState(false);
@@ -29,165 +55,244 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   
-  const getText = (en: string, zh: string) => language === 'zh' ? zh : en;
+  const getText = React.useCallback((en: string, zh: string) => language === 'zh' ? zh : en, [language]);
 
   // 调试信息
   console.log('Dashboard render - user:', !!user, 'loading:', loading, 'error:', error);
 
   // Check if we have a valid session
-  const hasValidSession = () => {
+  const hasValidSession = React.useCallback(() => {
     const token = localStorage.getItem('visaMate_accessToken');
     return user && token && token.length > 0;
-  };
+  }, [user]);
 
-  // Load user data on component mount
+  // 优化后的健康检查函数
+  const performHealthCheck = React.useCallback(async () => {
+    // 检查缓存
+    if (healthCheckCache && Date.now() < healthCheckCache.timestamp + HEALTH_CHECK_CACHE_EXPIRY) {
+      return healthCheckCache.status;
+    }
+
+    try {
+      console.log('Testing server health...');
+      const healthPromise = api.get('/make-server-54a8f580/health', false);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Health check timeout')), 8000)
+      );
+      
+      await Promise.race([healthPromise, timeoutPromise]);
+      console.log('Server health check passed');
+      
+      // 缓存成功的健康检查
+      healthCheckCache = { status: true, timestamp: Date.now() };
+      return true;
+    } catch (healthError) {
+      console.log('Health check failed:', healthError);
+      healthCheckCache = { status: false, timestamp: Date.now() };
+      return false;
+    }
+  }, [api]);
+
+  // 优化后的数据加载函数
+  const loadDashboardData = React.useCallback(async () => {
+    if (!hasValidSession()) {
+      console.log('No valid session, using basic mode');
+      setLoading(false);
+      setTimeline([]);
+      setChecklist([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Loading user data for user:', user?.email);
+      
+      // 检查健康状态
+      const isHealthy = await performHealthCheck();
+      if (!isHealthy) {
+        console.log('Server not healthy, continuing with basic functionality');
+        setTimeline([]);
+        setChecklist([]);
+        setLoading(false);
+        return;
+      }
+      
+      // 并行加载timeline和checklist数据，使用缓存
+      const cacheKeyTimeline = `timeline_${user?.userId}`;
+      const cacheKeyChecklist = `checklist_${user?.userId}`;
+      
+      const promises = [];
+      
+      // Timeline数据
+      const cachedTimeline = getCachedData(cacheKeyTimeline);
+      if (cachedTimeline) {
+        setTimeline(cachedTimeline);
+        console.log('Timeline loaded from cache');
+      } else {
+        promises.push(
+          api.get('/make-server-54a8f580/user/timeline')
+            .then(data => {
+              const timeline = data.timeline || [];
+              setTimeline(timeline);
+              setCachedData(cacheKeyTimeline, timeline);
+              console.log('Timeline data loaded and cached');
+            })
+            .catch(error => {
+              console.error('Error loading timeline:', error);
+              setTimeline([]);
+            })
+        );
+      }
+      
+      // Checklist数据
+      const cachedChecklist = getCachedData(cacheKeyChecklist);
+      if (cachedChecklist) {
+        setChecklist(cachedChecklist);
+        console.log('Checklist loaded from cache');
+      } else {
+        promises.push(
+          api.get('/make-server-54a8f580/user/checklist')
+            .then(data => {
+              const checklist = data.checklist || [];
+              setChecklist(checklist);
+              setCachedData(cacheKeyChecklist, checklist);
+              console.log('Checklist data loaded and cached');
+            })
+            .catch(error => {
+              console.error('Error loading checklist:', error);
+              setChecklist([]);
+            })
+        );
+      }
+      
+      // 等待所有未缓存的数据加载完成
+      if (promises.length > 0) {
+        await Promise.allSettled(promises);
+      }
+      
+      console.log('All user data loaded successfully');
+      
+    } catch (error: any) {
+      console.error('Error loading user data:', error);
+      setError(error.message || getText('Failed to load dashboard data', '加载仪表板数据失败'));
+      setTimeline([]);
+      setChecklist([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userId, user?.email, hasValidSession, api, performHealthCheck, getText]);
+
+  // Load user data on component mount - 优化依赖
   React.useEffect(() => {
-    const loadUserData = async () => {
-      console.log('Dashboard useEffect triggered');
-      console.log('User:', !!user);
-      console.log('Valid session:', hasValidSession());
-      
-      // 如果没有用户，直接设置 loading 为 false 并返回
-      if (!user) {
-        console.log('No user available, setting loading to false');
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      console.log('No user available, setting loading to false');
+      setLoading(false);
+      return;
+    }
 
-      // 如果有用户但没有有效会话，也设置 loading 为 false（使用基础功能）
-      if (!hasValidSession()) {
-        console.log('No valid session, using basic mode');
-        setLoading(false);
-        setTimeline([]);
-        setChecklist([]);
-        return;
-      }
-      
-      try {
-        setLoading(true);
-        setError(null);
-        console.log('Loading user data for user:', user?.email);
-        
-        // Test server connectivity first (with extended timeout and retry)
-        try {
-          console.log('Testing server health...');
-          
-          let healthCheckPassed = false;
-          const maxRetries = 3;
-          
-          for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-              const healthPromise = api.get('/make-server-54a8f580/health', false);
-              const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Health check timeout')), 10000) // 增加到10秒
-              );
-              
-              await Promise.race([healthPromise, timeoutPromise]);
-              console.log('Server health check passed');
-              healthCheckPassed = true;
-              break;
-            } catch (healthError) {
-              console.log(`Health check attempt ${attempt}/${maxRetries} failed:`, healthError);
-              if (attempt < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒后重试
-              }
-            }
+    // 添加短暂延迟确保token已设置
+    const timer = setTimeout(loadDashboardData, 100);
+    return () => clearTimeout(timer);
+  }, [user?.userId, loadDashboardData]); // 只依赖userId，避免user对象变化导致的重复加载
+
+  // 预加载关键页面资源
+  React.useEffect(() => {
+    // 在页面加载完成后的空闲时间预加载其他页面
+    const preloadPages = () => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => {
+          // 预加载关键路由
+          const router = require('next/router');
+          if (router && router.prefetch) {
+            router.prefetch('/settings');
+            router.prefetch('/doc-builder');
+            router.prefetch('/rfe-report');
           }
-          
-          if (!healthCheckPassed) {
-            throw new Error('Server health check failed after multiple attempts');
-          }
-        } catch (healthError) {
-          console.error('Server health check failed:', healthError);
-          // 不阻塞用户界面，继续使用基础功能
-          console.log('Continuing with basic functionality');
-          setTimeline([]);
-          setChecklist([]);
-          setLoading(false);
-          return;
-        }
-        
-        // Load timeline with detailed error handling
-        try {
-          console.log('Loading timeline...');
-          const timelineData = await api.get('/make-server-54a8f580/user/timeline');
-          console.log('Timeline data loaded successfully:', timelineData);
-          setTimeline(timelineData.timeline || []);
-        } catch (timelineError) {
-          console.error('Error loading timeline:', timelineError);
-          // Continue with empty timeline instead of failing completely
-          setTimeline([]);
-        }
-        
-        // Load checklist with detailed error handling
-        try {
-          console.log('Loading checklist...');
-          const checklistData = await api.get('/make-server-54a8f580/user/checklist');
-          console.log('Checklist data loaded successfully:', checklistData);
-          setChecklist(checklistData.checklist || []);
-        } catch (checklistError) {
-          console.error('Error loading checklist:', checklistError);
-          // Continue with empty checklist instead of failing completely
-          setChecklist([]);
-        }
-        
-        console.log('All user data loaded successfully');
-        
-      } catch (error: any) {
-        console.error('Error loading user data:', error);
-        setError(error.message || getText('Failed to load dashboard data', '加载仪表板数据失败'));
-        // Set empty states so the UI doesn't break
-        setTimeline([]);
-        setChecklist([]);
-      } finally {
-        setLoading(false);
+        }, { timeout: 2000 });
+      } else {
+        // 降级处理：延迟预加载
+        setTimeout(() => {
+          const linkPrefetch = document.createElement('link');
+          linkPrefetch.rel = 'prefetch';
+          linkPrefetch.href = '/settings';
+          document.head.appendChild(linkPrefetch);
+        }, 3000);
       }
     };
 
-    // Add a small delay to ensure token is set
-    const timer = setTimeout(loadUserData, 100);
-    return () => clearTimeout(timer);
-  }, [user]); // Only depend on user, check session validity inside
+    // 只在dashboard完全加载后执行
+    if (!loading && user) {
+      preloadPages();
+    }
+  }, [loading, user]);
 
-  // Listen for file upload events to refresh data
+  // 优化文件上传事件监听
   React.useEffect(() => {
     const handleFileUpload = (event: CustomEvent) => {
       console.log('File upload event received:', event.detail);
       
-      // Refresh user data and dashboard components
       if (hasValidSession()) {
-        refreshUser(); // This will trigger updates to file counts and RFE risk
+        // 清除相关缓存
+        const cacheKeyTimeline = `timeline_${user?.userId}`;
+        const cacheKeyChecklist = `checklist_${user?.userId}`;
+        API_CACHE.delete(cacheKeyTimeline);
+        API_CACHE.delete(cacheKeyChecklist);
         
-        // Optionally reload timeline and checklist data as well
-        const reloadDashboardData = async () => {
-          try {
-            const [timelineData, checklistData] = await Promise.all([
-              api.get('/make-server-54a8f580/user/timeline'),
-              api.get('/make-server-54a8f580/user/checklist')
-            ]);
-            
-            setTimeline(timelineData.timeline || []);
-            setChecklist(checklistData.checklist || []);
-            
-            console.log('Dashboard data refreshed after file upload');
-          } catch (error) {
-            console.error('Error refreshing dashboard data after file upload:', error);
-          }
-        };
+        // 刷新用户数据
+        refreshUser();
         
-        reloadDashboardData();
+        // 重新加载dashboard数据
+        loadDashboardData();
       }
     };
 
-    // Add event listener for file upload events
     window.addEventListener('fileUploaded', handleFileUpload as EventListener);
     
     return () => {
       window.removeEventListener('fileUploaded', handleFileUpload as EventListener);
     };
-  }, [refreshUser, api, hasValidSession]);
+  }, [hasValidSession, user?.userId, refreshUser, loadDashboardData]);
 
-  const handleChecklistItemUpdate = async (itemId: string, updates: any) => {
+  // 性能监控
+  React.useEffect(() => {
+    const performanceMetrics = {
+      startTime: performance.now(),
+      loadStart: Date.now()
+    };
+
+    const measurePerformance = () => {
+      const loadTime = performance.now() - performanceMetrics.startTime;
+      console.log(`📊 Dashboard load time: ${loadTime.toFixed(2)}ms`);
+      
+      // 记录性能指标到localStorage（用于调试）
+      if (typeof window !== 'undefined') {
+        const metrics = {
+          dashboardLoadTime: loadTime,
+          timestamp: Date.now(),
+          userAgent: navigator.userAgent,
+          viewportSize: `${window.innerWidth}x${window.innerHeight}`
+        };
+        
+        try {
+          const existingMetrics = JSON.parse(localStorage.getItem('dashboard_performance_metrics') || '[]');
+          existingMetrics.push(metrics);
+          // 只保留最近10次的记录
+          const recentMetrics = existingMetrics.slice(-10);
+          localStorage.setItem('dashboard_performance_metrics', JSON.stringify(recentMetrics));
+        } catch (error) {
+          console.warn('Failed to save performance metrics:', error);
+        }
+      }
+    };
+
+    // 当组件完全加载后测量性能
+    if (!loading) {
+      measurePerformance();
+    }
+  }, [loading]);
+
+  const handleChecklistItemUpdate = React.useCallback(async (itemId: string, updates: any) => {
     if (!hasValidSession()) {
       console.error('No valid session for checklist update');
       return;
@@ -197,22 +302,26 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
       const response = await api.put(`/make-server-54a8f580/user/checklist/${itemId}`, updates);
       setChecklist(response.checklist);
       
+      // 更新缓存
+      const cacheKey = `checklist_${user?.userId}`;
+      setCachedData(cacheKey, response.checklist);
+      
       // Refresh user data to get updated stats
       await refreshUser();
       
     } catch (error) {
       console.error('Error updating checklist item:', error);
     }
-  };
+  }, [hasValidSession, api, user?.userId, refreshUser]);
 
-  const calculateProgress = () => {
+  const calculateProgress = React.useCallback(() => {
     const totalItems = checklist.reduce((sum, category) => sum + category.items.length, 0);
     const completedItems = checklist.reduce(
       (sum, category) => sum + category.items.filter((item: any) => item.completed).length, 
       0
     );
     return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-  };
+  }, [checklist]);
 
   // Show loading state
   if (loading) {
@@ -304,7 +413,19 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
         {/* Top Section - User Info and RFE Risk */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Visa Category Selector */}
-          <VisaCategorySelector language={language} />
+          <React.Suspense fallback={
+            <div className="bg-card border border-border rounded-xl p-6">
+              <div className="animate-pulse">
+                <div className="h-6 bg-muted rounded mb-4"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          }>
+            <VisaCategorySelector language={language} />
+          </React.Suspense>
 
           {/* RFE Risk Alert */}
           <div className={`border rounded-xl p-6 ${
@@ -371,17 +492,17 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
           </div>
         </div>
 
-
-
         {/* EB1A Tools Suite - Show when EB1A is selected */}
         {(user?.visaCategory === 'EB-1A' || true) && (
-          <EB1AToolsSuite language={language} onShowUploads={onShowUploads} />
+          <React.Suspense fallback={
+            <div className="text-center py-8">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Loading tools...</p>
+            </div>
+          }>
+            <EB1AToolsSuite language={language} onShowUploads={onShowUploads} />
+          </React.Suspense>
         )}
-
-        {/* Refresh data when upload modal closes */}
-        <div style={{ display: 'none' }} />
-
-
 
         {/* AI Chat Sidepanel Button */}
         <div className="fixed bottom-6 right-6 z-40">
@@ -431,4 +552,6 @@ export function Dashboard({ onShowUploads, language }: DashboardProps) {
       </div>
     </div>
   );
-}
+});
+
+export { Dashboard };
